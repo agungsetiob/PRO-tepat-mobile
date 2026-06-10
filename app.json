@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "ProtokolTanbuMobile",
-    "slug": "ProtokolTanbuMobile",
+    "name": "PRO-Tepat",
+    "slug": "PRO-Tepat",
     "version": "1.0.0",
     "scheme": "protokol-tanbu",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/beraksi-logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/beraksi-logo.webp",
+      "image": "./assets/beraksi-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0d5ddd"
     },
@@ -18,8 +18,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/beraksi-logo.png",
+        "backgroundColor": "#0d5ddd"
       },
       "edgeToEdgeEnabled": true
     },

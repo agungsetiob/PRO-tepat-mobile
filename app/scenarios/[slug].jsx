@@ -4,8 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import axios from 'axios';
 import tw from 'twrnc';
 
-const API_BASE_URL = 'http://10.10.23.251:8000/api/v1';
-const STORAGE_BASE_URL = 'http://10.10.23.251:8000';
+const API_BASE_URL = 'http://10.10.23.234:8000/api/v1';
+const STORAGE_BASE_URL = 'http://10.10.23.234:8000';
 
 export default function ScenarioDetail() {
   const { slug } = useLocalSearchParams();

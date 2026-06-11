@@ -28,6 +28,10 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "API_BASE_URL": "http://10.10.23.137:8000/api/v1",
+      "STORAGE_BASE_URL": "http://10.10.23.137:8000"
+    }
   }
 }

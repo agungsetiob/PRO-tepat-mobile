@@ -1,26 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, TextInput, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator } from 'react-native';
+import {
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  StatusBar,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import tw from 'twrnc';
+import Constants from 'expo-constants';
+import { Search } from "lucide-react-native";
 
-const API_BASE_URL = 'http://10.10.23.234:8000/api/v1';
+const { API_BASE_URL } = Constants.expoConfig.extra;
 
 export default function Honorifics() {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [honorifics, setHonorifics] = useState([]);
-  const [filteredHonorifics, setFilteredHonorifics] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchHonorifics();
   }, []);
-
-  useEffect(() => {
-    filterData();
-  }, [search, honorifics]);
 
   const fetchHonorifics = async () => {
     setIsLoading(true);
@@ -36,23 +41,22 @@ export default function Honorifics() {
     }
   };
 
-  const filterData = () => {
-    let result = [...honorifics];
-
-    // Filter murni berdasarkan keyword pencarian text (Jabatan atau Sapaan)
-    if (search.trim().length > 0) {
-      const query = search.toLowerCase();
-      result = result.filter(item => 
-        item.jabatan?.toLowerCase().includes(query) ||
-        item.sapaan_resmi?.toLowerCase().includes(query) ||
-        item.sapaan_lisan?.toLowerCase().includes(query)
-      );
+  const searchHonorifics = async (keyword) => {
+    if (!keyword || keyword.trim().length === 0) {
+      fetchHonorifics();
+      return;
     }
-
-    // Tetap kita urutkan berdasarkan kolom tingkat (agar urutan kepangkatan dari Laravel tetap rapi)
-    result.sort((a, b) => a.tingkat - b.tingkat);
-
-    setFilteredHonorifics(result);
+    setIsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/search-honorifics?q=${keyword}`);
+      if (response.data.success) {
+        setHonorifics(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Gagal mencari data:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -75,44 +79,47 @@ export default function Honorifics() {
           </View>
         </View>
 
-        {/* INPUT PENCARIAN */}
-        <View style={tw`bg-white rounded-xl flex-row items-center px-4 py-1 shadow-sm`}>
-          <Text style={tw`text-lg mr-2`}>🔍</Text>
+        {/* SEARCH BAR dengan style cantik */}
+        <View style={tw`flex-row items-center bg-white rounded-full px-4 shadow-md border border-slate-200`}>
+          <Search size={18} color="#64748b" strokeWidth={2.2} />
           <TextInput
             value={search}
-            onChangeText={setSearch}
+            onChangeText={(text) => {
+              setSearch(text);
+              searchHonorifics(text);
+            }}
             placeholder="Ketik jabatan (Bupati, Dandim, Camat...)"
             placeholderTextColor="#94a3b8"
-            style={tw`flex-1 text-sm text-slate-800 py-2.5`}
+            style={tw`flex-1 text-sm text-slate-800`}
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
+            <TouchableOpacity onPress={() => { setSearch(''); fetchHonorifics(); }}>
               <Text style={tw`text-slate-400 font-bold px-2 text-lg`}>×</Text>
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      {/* LIST DATA SAPAAN */}
+      {/* LIST DATA */}
       {isLoading ? (
         <View style={tw`flex-1 justify-center items-center`}>
           <ActivityIndicator size="large" color="#0d9488" />
-          <Text style={tw`text-xs text-slate-400 mt-2`}>Sinkronisasi nama jabatan...</Text>
+          <Text style={tw`text-xs text-slate-400 mt-2`}>
+            Sinkronisasi nama jabatan...
+          </Text>
         </View>
       ) : (
         <ScrollView style={tw`flex-1 px-5 pt-2`}>
-          {filteredHonorifics.length > 0 ? (
-            filteredHonorifics.map((item) => (
+          {honorifics.length > 0 ? (
+            honorifics.map((item) => (
               <View
                 key={item.id}
                 style={tw`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-3`}
               >
-                {/* Bagian Atas Kartu */}
                 <View style={tw`flex-row justify-between items-start mb-2`}>
                   <Text style={tw`text-sm font-black text-slate-800 flex-1 mr-2`}>
                     {item.jabatan}
                   </Text>
-                  {/* Urutan hierarki internal tetap bisa diintip tipis-tipis lewat nomor tingkat */}
                   <View style={tw`bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded`}>
                     <Text style={tw`text-[9px] text-slate-400 font-bold`}>
                       #{item.tingkat}
@@ -120,35 +127,29 @@ export default function Honorifics() {
                   </View>
                 </View>
 
-                {/* Konten Utama */}
                 <View style={tw`mt-2 pt-2 border-t border-slate-100 gap-2`}>
-                  {/* Sapaan Resmi */}
                   <View>
                     <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
-                      📢 Sapaan Resmi (Naskah / Sambutan)
+                      📢 Sapaan Resmi
                     </Text>
                     <Text style={tw`text-xs font-bold text-slate-700 mt-0.5`}>
                       {item.sapaan_resmi || '-'}
                     </Text>
                   </View>
-
-                  {/* Sapaan Lisan */}
                   <View>
                     <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
-                      🗣️ Sapaan Lisan (Oleh MC / Pembawa Acara)
+                      🗣️ Sapaan Lisan
                     </Text>
                     <Text style={tw`text-xs font-semibold text-teal-600 mt-0.5`}>
                       {item.sapaan_lisan || '-'}
                     </Text>
                   </View>
-
-                  {/* Perlakuan Khusus */}
                   {item.perlakuan_khusus && (
-                    <View style={tw`bg-red-50 p-2.5 rounded-xl mt-1 border border-red-100`}>
-                      <Text style={tw`text-[10px] text-red-700 font-bold uppercase tracking-wide`}>
-                        ⚠️ Perlakuan / Aturan Khusus
+                    <View style={tw`bg-blue-50 p-2.5 rounded-xl mt-1 border border-blue-100`}>
+                      <Text style={tw`text-[10px] text-blue-700 font-bold uppercase tracking-wide`}>
+                        ⚠️ Perlakuan Khusus
                       </Text>
-                      <Text style={tw`text-[11px] text-red-600 font-medium mt-0.5 leading-relaxed`}>
+                      <Text style={tw`text-[11px] text-blue-600 font-medium mt-0.5 leading-relaxed`}>
                         {item.perlakuan_khusus}
                       </Text>
                     </View>

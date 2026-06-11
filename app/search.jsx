@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import tw from 'twrnc';
+import Constants from 'expo-constants';
+import { Search } from "lucide-react-native";
 
-const API_BASE_URL = 'http://10.10.23.234:8000/api/v1';
+const { API_BASE_URL } = Constants.expoConfig.extra;
 
 export default function GlobalSearch() {
   const router = useRouter();
@@ -28,9 +30,6 @@ export default function GlobalSearch() {
     try {
       // Endpoint yang mengembalikan seluruh daftar skenario aktif
       const response = await axios.get(`${API_BASE_URL}/scenarios`);
-      
-      // Jika backend Anda belum punya endpoint global /scenarios, alternatifnya 
-      // Mas bisa menembak endpoint kategori atau memfilter data lokal.
       if (response.data.success) {
         setScenarios(response.data.data || []);
       }
@@ -68,8 +67,8 @@ export default function GlobalSearch() {
             <Text style={tw`text-white text-xl font-bold`}>❮</Text>
           </TouchableOpacity>
           
-          <View style={tw`flex-1 bg-white rounded-xl flex-row items-center px-3 py-0.5 border border-slate-100`}>
-            <Text style={tw`text-base mr-2`}>🔍</Text>
+          <View style={tw`flex-1 bg-white rounded-full flex-row items-center px-3 border border-slate-100`}>
+            <Search size={18} color="#64748b" strokeWidth={2.2} />
             <TextInput
               value={query}
               onChangeText={setQuery}

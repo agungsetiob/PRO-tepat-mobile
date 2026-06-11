@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "protokol-tanbu",
     "orientation": "portrait",
-    "icon": "./assets/beraksi-logo.png",
+    "icon": "./assets/bupati-dan-wakil.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -18,10 +18,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/beraksi-logo.png",
+        "foregroundImage": "./assets/bupati-dan-wakil.png",
         "backgroundColor": "#0d5ddd"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.agungsetiob.protepat"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,8 +31,12 @@
       "expo-router"
     ],
     "extra": {
-      "API_BASE_URL": "http://10.10.23.137:8000/api/v1",
-      "STORAGE_BASE_URL": "http://10.10.23.137:8000"
+      "API_BASE_URL": "https://3b7c-36-83-17-96.ngrok-free.app/api/v1",
+      "STORAGE_BASE_URL": "https://3b7c-36-83-17-96.ngrok-free.app/",
+      "router": {},
+      "eas": {
+        "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"
+      }
     }
   }
 }

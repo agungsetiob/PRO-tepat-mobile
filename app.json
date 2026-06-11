@@ -31,8 +31,8 @@
       "expo-router"
     ],
     "extra": {
-      "API_BASE_URL": "https://3b7c-36-83-17-96.ngrok-free.app/api/v1",
-      "STORAGE_BASE_URL": "https://3b7c-36-83-17-96.ngrok-free.app/",
+      "API_BASE_URL": "https://headstand-dealmaker-plated.ngrok-free.dev/api/v1",
+      "STORAGE_BASE_URL": "https://headstand-dealmaker-plated.ngrok-free.dev/",
       "router": {},
       "eas": {
         "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"

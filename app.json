@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "PRO-Tepat",
-    "slug": "PRO-Tepat",
+    "name": "PROTAP",
+    "slug": "PROTAP",
     "version": "1.0.0",
     "scheme": "protokol-tanbu",
     "orientation": "portrait",
@@ -22,7 +22,7 @@
         "backgroundColor": "#0d5ddd"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.agungsetiob.protepat"
+      "package": "com.agungsetiob.protap"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,8 +31,8 @@
       "expo-router"
     ],
     "extra": {
-      "API_BASE_URL": "https://headstand-dealmaker-plated.ngrok-free.dev/api/v1",
-      "STORAGE_BASE_URL": "https://headstand-dealmaker-plated.ngrok-free.dev/",
+      "API_BASE_URL": "http://10.10.23.101:8000/api/v1",
+      "STORAGE_BASE_URL": "http://10.10.23.101:8000",
       "router": {},
       "eas": {
         "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"

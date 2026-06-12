@@ -64,7 +64,7 @@ export default function Honorifics() {
       <StatusBar barStyle="dark-content" />
 
       {/* HEADER & SEARCH BAR */}
-      <View style={tw`bg-slate-900 p-5 rounded-b-3xl shadow-md mb-3`}>
+      <View style={[tw`p-5 rounded-b-3xl shadow-md`, { backgroundColor: "#ff4d29" }]}>
         <View style={tw`flex-row items-center mb-4`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
             <Text style={tw`text-white text-xl font-bold`}>❮</Text>
@@ -103,7 +103,7 @@ export default function Honorifics() {
       {/* LIST DATA */}
       {isLoading ? (
         <View style={tw`flex-1 justify-center items-center`}>
-          <ActivityIndicator size="large" color="#0d9488" />
+          <ActivityIndicator size="large" color="#165e54" />
           <Text style={tw`text-xs text-slate-400 mt-2`}>
             Sinkronisasi nama jabatan...
           </Text>
@@ -147,7 +147,7 @@ export default function Honorifics() {
                   {item.perlakuan_khusus && (
                     <View style={tw`bg-blue-50 p-2.5 rounded-xl mt-1 border border-blue-100`}>
                       <Text style={tw`text-[10px] text-blue-700 font-bold uppercase tracking-wide`}>
-                        ⚠️ Perlakuan Khusus
+                        Perlakuan Khusus
                       </Text>
                       <Text style={tw`text-[11px] text-blue-600 font-medium mt-0.5 leading-relaxed`}>
                         {item.perlakuan_khusus}

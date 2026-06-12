@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
 import tw from "twrnc";
 import Constants from "expo-constants";
+import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote } from "lucide-react-native";
 
 const { API_BASE_URL, STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
@@ -79,8 +80,8 @@ export default function ScenarioDetail() {
     );
   }
 
-  // Cek apakah ini tipe tata tempat atau tata acara/hormat
-  const isTypeTempat = scenario.category?.type === "tempat";
+  // Cek apakah ini tipe tata tempat/hormat atau tata acara
+  const isTypeTempat = scenario.category?.type === "tempat" || scenario.category?.type === "hormat";
 
   return (
     <ScrollView style={tw`flex-1 bg-slate-50`}>
@@ -189,24 +190,34 @@ export default function ScenarioDetail() {
                       <Text
                         style={tw`text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1`}
                       >
-                        Urutan Penempatan Jabatan (
-                        {protocol.seating_rules.length})
+                        Urutan Penempatan Jabatan ({protocol.seating_rules.length})
                       </Text>
 
-                      {protocol.seating_rules.map((rule, index) => (
+                      {protocol.seating_rules.map((rule) => (
                         <View
                           key={rule.id}
-                          style={tw`bg-white rounded-xl shadow-sm mb-3 overflow-hidden`}
+                          style={tw`bg-white rounded-xl shadow-md mb-4 overflow-hidden`}
                         >
                           {/* ACCENT BORDER */}
                           <View style={tw`h-1 bg-teal-600`} />
 
                           <View style={tw`p-4`}>
-                            {/* HEADER SECTION - Responsive row */}
-                            <View style={tw`flex-row items-start gap-3 mb-3`}>
-                              {/* POSITION BADGE - Flexible width, better text handling */}
+                            {/* JABATAN */}
+                            <View style={tw`flex-row items-center mb-2`}>
+                              <UserCircle2 size={18} color="#334155" style={tw`mr-2`} />
+                              <Text
+                                style={tw`text-base font-bold text-slate-800 leading-5 flex-1`}
+                                numberOfLines={2}
+                              >
+                                {rule.honorific?.jabatan || "Nama Jabatan"}
+                              </Text>
+                            </View>
+
+                            {/* POSITION LABEL */}
+                            <View style={tw`flex-row items-center mb-3`}>
+                              <Tag size={14} color="#0f766e" style={tw`mr-2`} />
                               <View
-                                style={tw`bg-teal-600 rounded-full px-3 py-1.5 min-w-[60px] max-w-[100px]`}
+                                style={tw`bg-teal-600 rounded-full px-3 py-1.5`}
                               >
                                 <Text
                                   style={tw`text-white font-bold text-[11px] text-center`}
@@ -216,40 +227,30 @@ export default function ScenarioDetail() {
                                   {rule.position_label}
                                 </Text>
                               </View>
-
-                              {/* TITLE & NOTE CONTAINER */}
-                              <View style={tw`flex-1 gap-1`}>
-                                <Text
-                                  style={tw`text-sm font-bold text-slate-800 leading-5`}
-                                  numberOfLines={3}
-                                >
-                                  {rule.honorific?.jabatan || "Nama Jabatan"}
-                                </Text>
-
-                                {/* NOTE BADGE - Redesigned for long text */}
-                                {rule.note && (
-                                  <View
-                                    style={tw`bg-amber-50 border border-amber-200 px-2 py-1 rounded-md self-start max-w-full`}
-                                  >
-                                    <Text
-                                      style={tw`text-[10px] text-amber-700 font-semibold`}
-                                      numberOfLines={3}
-                                    >
-                                      📌 {rule.note}
-                                    </Text>
-                                  </View>
-                                )}
-                              </View>
                             </View>
 
-                            {/* DETAIL SECTION - Improved spacing and icons */}
-                            <View style={tw`bg-slate-50 rounded-lg p-3 mt-1`}>
-                              <View style={tw`gap-2`}>
+                            {/* NOTE */}
+                            {rule.note && (
+                              <View
+                                style={tw`flex-row items-start bg-amber-50 border border-amber-200 px-3 py-2 rounded-md mb-3`}
+                              >
+                                <StickyNote size={14} color="#b45309" style={tw`mr-2 mt-0.5`} />
+                                <Text
+                                  style={tw`text-[11px] text-amber-700 font-semibold flex-1`}
+                                  numberOfLines={3}
+                                >
+                                  {rule.note}
+                                </Text>
+                              </View>
+                            )}
+
+                            {/* DETAIL SECTION */}
+                            <View style={tw`bg-slate-50 rounded-lg p-3`}>
+                              <View style={tw`gap-3`}>
                                 <View style={tw`flex-row items-start gap-2`}>
-                                  <Text
-                                    style={tw`text-[11px] text-slate-500 min-w-[85px]`}
-                                  >
-                                    📢 Sapaan Resmi:
+                                  <Megaphone size={14} color="#475569" style={tw`mr-1 mt-0.5`} />
+                                  <Text style={tw`text-[11px] text-slate-500 min-w-[85px]`}>
+                                    Sapaan Resmi:
                                   </Text>
                                   <Text
                                     style={tw`flex-1 text-[11px] font-semibold text-slate-700`}
@@ -260,10 +261,9 @@ export default function ScenarioDetail() {
                                 </View>
 
                                 <View style={tw`flex-row items-start gap-2`}>
-                                  <Text
-                                    style={tw`text-[11px] text-slate-500 min-w-[85px]`}
-                                  >
-                                    🗣️ Sapaan Lisan:
+                                  <Mic size={14} color="#0f766e" style={tw`mr-1 mt-0.5`} />
+                                  <Text style={tw`text-[11px] text-slate-500 min-w-[85px]`}>
+                                    Sapaan Lisan:
                                   </Text>
                                   <Text
                                     style={tw`flex-1 text-[11px] font-semibold text-slate-700`}
@@ -273,13 +273,13 @@ export default function ScenarioDetail() {
                                   </Text>
                                 </View>
 
-                                {/* SPECIAL TREATMENT - Improved visibility */}
                                 {rule.honorific?.perlakuan_khusus && (
                                   <View
-                                    style={tw`bg-red-50 border-l-4 border-red-500 p-2.5 rounded-r-md mt-1`}
+                                    style={tw`flex-row items-start bg-red-50 border-l-4 border-red-500 p-2.5 rounded-r-md mt-2`}
                                   >
+                                    <Star size={14} color="#b91c1c" style={tw`mr-2 mt-0.5`} />
                                     <Text
-                                      style={tw`text-[11px] text-red-700 leading-5`}
+                                      style={tw`text-[11px] text-red-700 leading-5 flex-1`}
                                     >
                                       <Text style={tw`font-bold`}>
                                         Perlakuan Khusus:
@@ -303,9 +303,9 @@ export default function ScenarioDetail() {
             </Text>
           )
         ) : (
-          /* ===================================================================
-             LAYOUT UTAMA: TATA ACARA / HORMAT (Membaca Checklists & Equipments)
-             =================================================================== */
+          /* ========================================
+             LAYOUT UTAMA: TATA ACARA / HORMAT 
+             ======================================== */
           <View>
             {/* Bagian Checklist / Susunan Acara */}
             <Text

@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import tw from 'twrnc';
 import Constants from 'expo-constants';
-import { Search } from "lucide-react-native";
+import { Search, UserCircle2, Megaphone, Mic, Star } from "lucide-react-native";
 
 const { API_BASE_URL } = Constants.expoConfig.extra;
 
@@ -79,7 +79,7 @@ export default function Honorifics() {
           </View>
         </View>
 
-        {/* SEARCH BAR dengan style cantik */}
+        {/* SEARCH BAR */}
         <View style={tw`flex-row items-center bg-white rounded-full px-4 shadow-md border border-slate-200`}>
           <Search size={18} color="#64748b" strokeWidth={2.2} />
           <TextInput
@@ -114,12 +114,16 @@ export default function Honorifics() {
             honorifics.map((item) => (
               <View
                 key={item.id}
-                style={tw`bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-3`}
+                style={tw`bg-white p-4 rounded-2xl border border-slate-100 shadow-md mb-3`}
               >
+                {/* Jabatan */}
                 <View style={tw`flex-row justify-between items-start mb-2`}>
-                  <Text style={tw`text-sm font-black text-slate-800 flex-1 mr-2`}>
-                    {item.jabatan}
-                  </Text>
+                  <View style={tw`flex-row items-center flex-1 mr-2`}>
+                    <UserCircle2 size={18} color="#334155" style={tw`mr-2`} />
+                    <Text style={tw`text-sm font-black text-slate-800`}>
+                      {item.jabatan}
+                    </Text>
+                  </View>
                   <View style={tw`bg-slate-50 border border-slate-200 px-1.5 py-0.5 rounded`}>
                     <Text style={tw`text-[9px] text-slate-400 font-bold`}>
                       #{item.tingkat}
@@ -127,31 +131,43 @@ export default function Honorifics() {
                   </View>
                 </View>
 
-                <View style={tw`mt-2 pt-2 border-t border-slate-100 gap-2`}>
-                  <View>
-                    <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
-                      📢 Sapaan Resmi
-                    </Text>
-                    <Text style={tw`text-xs font-bold text-slate-700 mt-0.5`}>
-                      {item.sapaan_resmi || '-'}
-                    </Text>
+                {/* Sapaan */}
+                <View style={tw`mt-2 pt-2 border-t border-slate-100 gap-3`}>
+                  <View style={tw`flex-row items-center`}>
+                    <Megaphone size={14} color="#475569" style={tw`mr-2`} />
+                    <View>
+                      <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
+                        Sapaan Resmi
+                      </Text>
+                      <Text style={tw`text-xs font-bold text-slate-700 mt-0.5`}>
+                        {item.sapaan_resmi || '-'}
+                      </Text>
+                    </View>
                   </View>
-                  <View>
-                    <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
-                      🗣️ Sapaan Lisan
-                    </Text>
-                    <Text style={tw`text-xs font-semibold text-teal-600 mt-0.5`}>
-                      {item.sapaan_lisan || '-'}
-                    </Text>
+
+                  <View style={tw`flex-row items-center`}>
+                    <Mic size={14} color="#0f766e" style={tw`mr-2`} />
+                    <View>
+                      <Text style={tw`text-[10px] text-slate-400 uppercase font-bold tracking-wide`}>
+                        Sapaan Lisan
+                      </Text>
+                      <Text style={tw`text-xs font-semibold text-teal-600 mt-0.5`}>
+                        {item.sapaan_lisan || '-'}
+                      </Text>
+                    </View>
                   </View>
+
                   {item.perlakuan_khusus && (
-                    <View style={tw`bg-blue-50 p-2.5 rounded-xl mt-1 border border-blue-100`}>
-                      <Text style={tw`text-[10px] text-blue-700 font-bold uppercase tracking-wide`}>
-                        Perlakuan Khusus
-                      </Text>
-                      <Text style={tw`text-[11px] text-blue-600 font-medium mt-0.5 leading-relaxed`}>
-                        {item.perlakuan_khusus}
-                      </Text>
+                    <View style={tw`bg-blue-50 p-2.5 rounded-xl mt-1 border border-blue-100 flex-row`}>
+                      <Star size={14} color="#1e40af" style={tw`mr-2 mt-0.5`} />
+                      <View style={tw`flex-1`}>
+                        <Text style={tw`text-[10px] text-blue-700 font-bold uppercase tracking-wide`}>
+                          Perlakuan Khusus
+                        </Text>
+                        <Text style={tw`text-[11px] text-blue-600 font-medium mt-0.5 leading-relaxed`}>
+                          {item.perlakuan_khusus}
+                        </Text>
+                      </View>
                     </View>
                   )}
                 </View>

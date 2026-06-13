@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "scheme": "protokol-tanbu",
     "orientation": "portrait",
-    "icon": "./assets/bupati-dan-wakil.png",
+    "icon": "./assets/icon-protap.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/bupati-dan-wakil.png",
+        "foregroundImage": "./assets/icon-protap.png",
         "backgroundColor": "#0d5ddd"
       },
       "edgeToEdgeEnabled": true,

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PROTAP",
-    "slug": "PROTAP",
+    "slug": "PRO-Tepat",
     "version": "1.0.0",
     "scheme": "protokol-tanbu",
     "orientation": "portrait",
@@ -22,7 +22,8 @@
         "backgroundColor": "#0d5ddd"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.agungsetiob.protap"
+      "package": "com.agungsetiob.protap",
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,12 +32,13 @@
       "expo-router"
     ],
     "extra": {
-      "API_BASE_URL": "http://192.168.1.18:8000/api/v1",
-      "STORAGE_BASE_URL": "http://192.168.1.18:8000",
+      "API_BASE_URL": "https://protap.tanahbumbukab.go.id/api/v1",
+      "STORAGE_BASE_URL": "https://protap.tanahbumbukab.go.id",
       "router": {},
       "eas": {
         "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"
       }
-    }
+    },
+    "owner": "agungsetiob"
   }
 }

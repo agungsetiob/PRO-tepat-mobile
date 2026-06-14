@@ -28,9 +28,9 @@ const { API_BASE_URL, STORAGE_BASE_URL } = Constants.expoConfig.extra;
 const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
   const pascalCaseName = name
     ? name
-        .split("-")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join("")
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join("")
     : "Folder";
 
   const IconComponent = LucideIcons[pascalCaseName] || LucideIcons.Folder;
@@ -40,11 +40,11 @@ const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
 export default function Home() {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
-  
+
   const [scenarios, setScenarios] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -129,7 +129,7 @@ export default function Home() {
     setIsLoadingMore(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/scenarios?cursor=${nextCursor}`);
-      
+
       if (response.data.success) {
         const newData = response.data.data || [];
         setScenarios((prev) => [...prev, ...newData]);
@@ -174,7 +174,7 @@ export default function Home() {
           </View>
           <View>
             <Text style={tw`text-white text-xs font-bold uppercase tracking-wider`}>
-              Kamus Saku Protokol
+              Panduan Digital Protokol
             </Text>
             <Text style={tw`text-teal-200 text-[11px] mt-0.5`}>
               Sapaan Resmi & Lisan Pejabat
@@ -255,10 +255,19 @@ export default function Home() {
             style={{ width: width * 0.6, height: 150 }}
             resizeMode="contain"
           />
-          <View style={tw`mt-8 items-center`}>
-            <Text style={tw`text-white text-2xl font-black tracking-widest`}>PROTAP</Text>
+          <View style={tw`mt-2 items-center`}>
+            <View style={tw`flex-row items-center`}>
+            <Image
+              source={require('../assets/icon-protap.png')}
+              style={tw`w-10 h-10 -mr-2`}
+              resizeMode="contain"
+            />
+            <Text style={tw`text-white text-4xl font-black tracking-wide`}>
+              ROTAP
+            </Text>
+          </View>
             <View style={tw`h-1 w-12 bg-teal-500 my-2 rounded-full`} />
-            <Text style={tw`text-teal-400 text-xs font-bold uppercase tracking-widest`}>
+            <Text style={tw`text-teal-400 text-xs font-bold uppercase`}>
               Panduan Resmi Operasional Tata Acara Protokol
             </Text>
           </View>
@@ -279,15 +288,24 @@ export default function Home() {
     <>
       <StatusBar barStyle="light-content" backgroundColor="#3bd9e8" translucent={false} />
       <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={['bottom', 'left', 'right']}>
-        {/* HEADER DENGAN GRADIENT - SEKARANG TIDAK IKUT SCROLL */}
         <LinearGradient
           colors={['#3bd9e8', '#9359e9']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={tw`p-5 pt-12 rounded-b-3xl`}
         >
-          <Text style={tw`text-white text-2xl font-black tracking-wide`}>PROTAP</Text>
-          <Text style={tw`text-teal-100 text-sm font-semibold tracking-wider uppercase`}>
+          <View style={tw`flex-row items-center`}>
+            <Image
+              source={require('../assets/icon-protap.png')}
+              style={tw`w-7 h-7  -mr-1`}
+              resizeMode="contain"
+            />
+            <Text style={tw`text-white text-2xl font-black tracking-wide`}>
+              ROTAP
+            </Text>
+          </View>
+
+          <Text style={tw`text-teal-200 text-sm font-semibold tracking-wider uppercase`}>
             Kabupaten Tanah Bumbu
           </Text>
 

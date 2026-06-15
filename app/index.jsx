@@ -248,28 +248,28 @@ export default function Home() {
             opacity: fadeAnim,
             transform: [{ scale: scaleAnim }],
             alignItems: "center",
+            justifyContent: "center",
+            width: '100%',
           }}
         >
-          <Image
-            source={require("../assets/beraksi-logo.png")}
-            style={{ width: width * 0.6, height: 150 }}
-            resizeMode="contain"
-          />
-          <View style={tw`mt-2 items-center`}>
-            <View style={tw`flex-row items-center`}>
+          <View style={tw`items-center justify-center`}>
             <Image
-              source={require('../assets/icon-protap.png')}
-              style={tw`w-10 h-10 -mr-2`}
+              source={require("../assets/icon-protap-splash.png")}
+              style={{ width: width * 1.1, height: 210, marginBottom: -50 }}
               resizeMode="contain"
             />
-            <Text style={tw`text-white text-4xl font-black tracking-wide`}>
-              ROTAP
-            </Text>
-          </View>
-            <View style={tw`h-1 w-12 bg-teal-500 my-2 rounded-full`} />
-            <Text style={tw`text-teal-400 text-xs font-bold uppercase`}>
-              Panduan Resmi Operasional Tata Acara Protokol
-            </Text>
+
+            <Image
+              source={require("../assets/protokoler.png")}
+              style={{ width: width * 1.85, height: 410, marginTop: -75 }}
+              resizeMode="contain"
+            />
+
+            <View style={tw`-mt-28 items-center`}>
+              <Text style={tw`text-teal-400 text-lg font-black uppercase text-center px-2`}>
+                Panduan Resmi Operasional Tata Acara Protokol
+              </Text>
+            </View>
           </View>
         </Animated.View>
 
@@ -292,17 +292,24 @@ export default function Home() {
           colors={['#3bd9e8', '#9359e9']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={tw`p-5 pt-12 rounded-b-3xl`}
-        >
-          <View style={tw`flex-row items-center`}>
+          style={tw`p-5 pt-12 rounded-b-3xl`}>
+          <View style={tw`flex-row items-center justify-between`}>
+            <View style={tw`flex-row items-center`}>
+              <Image
+                source={require('../assets/icon-protap.png')}
+                style={tw`w-7 h-7 -mr-1`}
+                resizeMode="contain"
+              />
+              <Text style={tw`text-white text-2xl font-black tracking-wide`}>
+                ROTAP
+              </Text>
+            </View>
+
             <Image
-              source={require('../assets/icon-protap.png')}
-              style={tw`w-7 h-7  -mr-1`}
+              source={require('../assets/beraksi-logo.png')}
+              style={tw`h-16 w-28`}
               resizeMode="contain"
             />
-            <Text style={tw`text-white text-2xl font-black tracking-wide`}>
-              ROTAP
-            </Text>
           </View>
 
           <Text style={tw`text-teal-200 text-sm font-semibold tracking-wider uppercase`}>

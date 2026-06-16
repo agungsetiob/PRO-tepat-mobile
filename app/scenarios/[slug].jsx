@@ -148,13 +148,13 @@ export default function ScenarioDetail() {
         <View style={tw`p-5`}>
           {isTypeTempat ? (
             /* ===================================================================
-               LAYOUT UTAMA: TATA TEMPAT (Membaca Protocols & Seating Rules)
+               LAYOUT UTAMA: TATA TEMPAT
                =================================================================== */
             scenario.protocols && scenario.protocols.length > 0 ? (
               scenario.protocols.map((protocol, index) => (
                 <View key={protocol.id} style={tw`mb-6`}>
                   <Text style={tw`text-sm font-black text-white mb-2`}>
-                    {index + 1}. {protocol.title}
+                    {protocol.title}
                   </Text>
 
                   {protocol.content && (

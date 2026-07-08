@@ -166,7 +166,7 @@ export default function Home() {
       {/* UTILITIES SHORTCUT (KAMUS SAKU) */}
       <TouchableOpacity
         onPress={() => router.push("/honorifics")}
-        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-6 flex-row items-center justify-between`}
+        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
       >
         <View style={tw`flex-row items-center`}>
           <View style={tw`bg-teal-500/40 p-2 rounded-xl mr-3`}>
@@ -178,6 +178,27 @@ export default function Home() {
             </Text>
             <Text style={tw`text-teal-200 text-[11px] mt-0.5`}>
               Sapaan Resmi & Lisan Pejabat
+            </Text>
+          </View>
+        </View>
+        <Text style={tw`text-white font-bold text-base`}>❯</Text>
+      </TouchableOpacity>
+
+      {/* ➕ TOMBOL BARU: SHORTCUT UTK AKSES RUNDOWN GENERATOR */}
+      <TouchableOpacity
+        onPress={() => router.push("/generator")}
+        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-6 flex-row items-center justify-between border border-teal-500/20`}
+      >
+        <View style={tw`flex-row items-center`}>
+          <View style={tw`bg-purple-500/30 p-2 rounded-xl mr-3`}>
+            <DynamicIcon name="file-text" color="#a855f7" size={20} />
+          </View>
+          <View>
+            <Text style={tw`text-white text-xs font-bold uppercase tracking-wider`}>
+              Rundown Generator
+            </Text>
+            <Text style={tw`text-purple-300 text-[11px] mt-0.5`}>
+              Buat Susunan Acara Instan (PDF)
             </Text>
           </View>
         </View>

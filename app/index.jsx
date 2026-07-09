@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useFonts, Poppins_400Regular, Poppins_700Bold, Poppins_900Black } from '@expo-google-fonts/poppins'; // <-- IMPORT POPPINS
+import { useFonts, Poppins_400Regular, Poppins_700Bold, Poppins_900Black } from '@expo-google-fonts/poppins';
 import {
   Text,
   View,
@@ -249,7 +249,6 @@ export default function Home() {
     </View>
   );
 
-  // Component Item untuk dirender berulang kali di FlatList
   const renderItem = ({ item }) => (
     <TouchableOpacity
       onPress={() => router.push(`/scenarios/${item.slug}`)}
@@ -343,7 +342,6 @@ export default function Home() {
                 style={tw`w-7 h-7 -mr-1`}
                 resizeMode="contain"
               />
-              {/* 5. Ganti font ROTAP di Header Utama */}
               <Text style={[tw`text-white text-2xl tracking-wide`, { fontFamily: 'Poppins-Black' }]}>
                 ROTAP
               </Text>

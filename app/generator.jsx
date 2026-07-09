@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Modal,
@@ -26,7 +25,6 @@ const { API_BASE_URL } = Constants.expoConfig.extra;
 export default function RundownGenerator() {
   const router = useRouter();
 
-  // State Form Utama
   const [eventName, setEventName] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -34,21 +32,29 @@ export default function RundownGenerator() {
   const [location, setLocation] = useState("");
   const [pic, setPic] = useState("");
 
-  // State Data Master & Baris Dinamis
   const [masterAgendas, setMasterAgendas] = useState([]);
   const [rundownRows, setRundownRows] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // State Pembantu Pengendali TimePicker & Modal Pencarian Agenda
   const [activeTimePicker, setActiveTimePicker] = useState(null);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [activeRowSearchIndex, setActiveRowSearchIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertTitle, setAlertTitle] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
+
   useEffect(() => {
     fetchMasterAgendas();
   }, []);
+
+  const triggerAlert = (title, message) => {
+    setAlertTitle(title);
+    setAlertMessage(message);
+    setAlertVisible(true);
+  };
 
   const fetchMasterAgendas = async () => {
     try {
@@ -58,7 +64,7 @@ export default function RundownGenerator() {
       }
     } catch (error) {
       console.error("Gagal memuat master agenda:", error);
-      Alert.alert("Error", "Gagal mengambil bank data uraian kegiatan.");
+      triggerAlert("Error", "Gagal mengambil bank data uraian kegiatan dari server.");
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +99,6 @@ export default function RundownGenerator() {
     return `${year}-${month}-${day}`;
   };
 
-  // Memfilter daftar agenda berdasarkan input teks pencarian user
   const filteredAgendas = masterAgendas.filter((agenda) =>
     agenda.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -114,7 +119,7 @@ export default function RundownGenerator() {
 
   const handleSubmit = async () => {
     if (!eventName || !location || rundownRows.length === 0) {
-      Alert.alert("Peringatan", "Mohon lengkapi data acara dan isi minimal 1 baris susunan!");
+      triggerAlert("Peringatan", "Mohon lengkapi data acara dan isi minimal 1 baris susunan!");
       return;
     }
 
@@ -153,31 +158,46 @@ export default function RundownGenerator() {
             <meta charset="utf-8">
             <style>
               @page { size: A4; margin: 20mm 15mm; }
-              body { font-family: 'Arial', sans-serif; color: #1e293b; margin: 0; padding: 0; font-size: 10pt; line-height: 1.6; }
-              .header { text-align: center; border-bottom: 3px double #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
-              .gov-title { font-size: 14pt; font-weight: bold; text-transform: uppercase; color: #0f172a; margin: 0; }
-              .gov-sub { font-size: 9.5pt; color: #475569; margin: 3px 0 0 0; font-weight: 500; }
-              .doc-title { font-size: 12pt; font-weight: bold; text-transform: uppercase; color: #0f172a; text-align: center; margin: 20px 0; letter-spacing: 0.5px; }
-              .meta-info { width: 100%; margin-bottom: 20px; font-size: 10pt; }
+              body { font-family: 'Arial', sans-serif; color: #1e293b; margin: 0; padding: 0; font-size: 10pt; line-height: 1.5; }
+              
+              .brand-container { text-align: center; margin-bottom: 5px; }
+              .gov-logo { width: 70px; height: auto; display: inline-block; }
+              
+              .header-text-group { text-align: center; margin-bottom: 25px; }
+              .doc-title { font-size: 13pt; font-weight: 800; text-transform: uppercase; color: #0f172a; margin: 4px 0; letter-spacing: 0.5px; }
+              .gov-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; color: #475569; margin: 2px 0; }
+              
+              .meta-info { width: 100%; margin-bottom: 20px; font-size: 10pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 15px; }
               .meta-info td { padding: 4px 0; vertical-align: top; }
-              .meta-label { width: 15%; font-weight: bold; }
-              .meta-value { width: 85%; }
-              table.content-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-              table.content-table th { background-color: #97aee4; color: white; font-weight: bold; text-transform: uppercase; font-size: 8.5pt; padding: 10px; border: 1px solid #0f172a; }
-              table.content-table td { padding: 10px; border: 1px solid #cbd5e1; vertical-align: top; }
+              .meta-label { width: 18%; font-weight: bold; color: #334155; }
+              .meta-spacer { width: 2%; color: #334155; }
+              .meta-value { width: 80%; color: #0f172a; }
+              
+              table.content-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+              table.content-table th { background-color: #7497e9; color: white; font-weight: bold; text-transform: uppercase; font-size: 8.5pt; padding: 10px; border: 1px solid #475569; }
+              table.content-table td { padding: 10px; border: 1px solid #475569; vertical-align: middle; font-size: 9.5pt; }
               table.content-table tr:nth-child(even) { background-color: #f8fafc; }
             </style>
           </head>
           <body>
-            <div class="doc-title">RUNDOWN ACARA</div>
-            <div class="doc-title">${savedRundown.event_name}</div>
-            <div class="gov-title" style="text-align: center;">KABUPATEN TANAH BUMBU</div>
+            
+            <div class="brand-container">
+              <img class="gov-logo" src="https://protap.tanahbumbukab.go.id/logo-tanbu.png" alt="Logo Kabupaten" />
+            </div>
+
+            <div class="header-text-group">
+              <div class="doc-title">RUNDOWN ACARA</div>
+              <div class="doc-title">${savedRundown.event_name}</div>
+              <div class="gov-title">KABUPATEN TANAH BUMBU</div>
+            </div>
+
             <table class="meta-info">
-              <tr><td class="meta-label">Hari, Tgl</td><td>:</td><td class="meta-value">${savedRundown.date}</td></tr>
-              <tr><td class="meta-label">Waktu</td><td>:</td><td class="meta-value">${savedRundown.time_info}</td></tr>
-              <tr><td class="meta-label">Tempat</td><td>:</td><td class="meta-value">${savedRundown.location}</td></tr>
-              <tr><td class="meta-label">Pelaksana / PJ</td><td>:</td><td class="meta-value">${savedRundown.pic || '-'}</td></tr>
+              <tr><td class="meta-label">Hari, Tgl</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.date}</td></tr>
+              <tr><td class="meta-label">Waktu</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.time_info}</td></tr>
+              <tr><td class="meta-label">Tempat</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.location}</td></tr>
+              <tr><td class="meta-label">Pelaksana / PJ</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.pic || '-'}</td></tr>
             </table>
+
             <table class="content-table">
               <thead>
                 <tr>
@@ -202,7 +222,7 @@ export default function RundownGenerator() {
       }
     } catch (error) {
       console.error("Gagal generate rundown & PDF:", error);
-      Alert.alert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
+      triggerAlert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
     } finally {
       setRundownRows([]);
       setIsSubmitting(false);
@@ -213,7 +233,7 @@ export default function RundownGenerator() {
     return (
       <View style={tw`flex-1 bg-[#0d1731] justify-center items-center`}>
         <ActivityIndicator size="large" color="#3bd9e8" />
-        <Text style={tw`text-xs text-slate-400 mt-2`}>Menyiapkan Data Acara...</Text>
+        <Text style={tw`text-xs text-slate-400 mt-2`}>Menyiapkan Data...</Text>
       </View>
     );
   }
@@ -249,7 +269,7 @@ export default function RundownGenerator() {
           
           ListHeaderComponent={
             <View>
-              <Text style={tw`text-slate-400 text-xs font-bold mb-1.5 uppercase`}>Nama Acara / Kegiatan</Text>
+              <Text style={tw`text-slate-400 text-xs font-bold mb-1.5 uppercase`}>Nama Acara</Text>
               <TextInput
                 value={eventName}
                 onChangeText={setEventName}
@@ -313,7 +333,7 @@ export default function RundownGenerator() {
                 </Text>
                 <TouchableOpacity
                   onPress={handleAddRow}
-                  style={tw`bg-teal-400 px-3 py-1.5 rounded-lg`}
+                  style={tw`bg-teal-500 px-3 py-1.5 rounded-lg`}
                 >
                   <Text style={tw`text-white text-xs font-bold`}>➕</Text>
                 </TouchableOpacity>
@@ -322,7 +342,6 @@ export default function RundownGenerator() {
           }
           
           renderItem={({ item, index }) => {
-            // Mencari nama agenda yang terpilih saat ini untuk ditampilkan di tombol UI
             const selectedAgenda = masterAgendas.find((a) => a.id === item.master_agenda_id);
 
             return (
@@ -370,7 +389,6 @@ export default function RundownGenerator() {
                   />
                 )}
 
-                {/* REPLACEMENT PICKER: Menggunakan Tombol Trigger Modal Pencarian */}
                 <TouchableOpacity
                   onPress={() => openSearchModal(index)}
                   style={tw`bg-slate-800 border border-slate-700 rounded-xl p-3 flex-row justify-between items-center`}
@@ -418,15 +436,13 @@ export default function RundownGenerator() {
       >
         <View style={tw`flex-1 bg-black/70 justify-end`}>
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
-            {/* Header Modal */}
             <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari Uraian Kegiatan</Text>
+              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari acara</Text>
               <TouchableOpacity onPress={() => setSearchModalVisible(false)} style={tw`bg-slate-800 p-2 rounded-full px-3`}>
                 <Text style={tw`text-slate-400 text-xs font-bold`}>Tutup</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Input Kotak Pencarian */}
             <TextInput
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -436,7 +452,6 @@ export default function RundownGenerator() {
               style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-4`}
             />
 
-            {/* List Agenda Master Terfilter */}
             <FlatList
               data={filteredAgendas}
               keyExtractor={(item) => "search-agenda-" + item.id}
@@ -451,13 +466,46 @@ export default function RundownGenerator() {
               )}
               ListEmptyComponent={
                 <View style={tw`py-10 items-center`}>
-                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada kegiatan yang cocok.</Text>
+                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada.</Text>
                 </View>
               }
             />
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={alertVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setAlertVisible(false)}
+      >
+        <View style={tw`flex-1 bg-black/60 justify-center items-center px-6`}>
+          <View style={tw`bg-slate-900 border border-slate-800 w-full max-w-xs rounded-2xl overflow-hidden shadow-2xl`}>
+            {/* Konten Teks */}
+            <View style={tw`p-5 items-center`}>
+              <Text style={tw`text-white text-base font-black uppercase tracking-wide text-center mb-2`}>
+                {alertTitle}
+              </Text>
+              <Text style={tw`text-slate-300 text-xs text-center leading-relaxed font-medium`}>
+                {alertMessage}
+              </Text>
+            </View>
+            
+            {/* Divider Garis Horisontal */}
+            <View style={tw`h-[1px] bg-slate-800 w-full`} />
+
+            <TouchableOpacity
+              onPress={() => setAlertVisible(false)}
+              activeOpacity={0.8}
+              style={tw`w-full py-3.5 items-center justify-center bg-slate-800/40`}
+            >
+              <Text style={tw`text-teal-400 font-bold text-sm tracking-wider`}>Mengerti</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }

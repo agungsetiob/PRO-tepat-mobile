@@ -29,15 +29,7 @@
     "plugins": [
       "expo-router",
       "@react-native-community/datetimepicker",
-      "expo-font",
-      [
-        "expo-media-library",
-        {
-          "photosPermission": "Aplikasi memerlukan akses ke foto untuk menyimpan gambar denah.",
-          "savePhotosPermission": "Aplikasi memerlukan izin menyimpan denah acara ke galeri Anda.",
-          "isAudioEnabled": false
-        }
-      ]
+      "expo-font"
     ],
     "extra": {
       "API_BASE_URL": "http://10.10.23.233:8000/api/v1",

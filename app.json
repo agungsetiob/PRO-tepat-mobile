@@ -28,11 +28,12 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-font"
     ],
     "extra": {
-      "API_BASE_URL": "http://10.10.23.174:8000/api/v1",
-      "STORAGE_BASE_URL": "http://10.10.23.174:8000",
+      "API_BASE_URL": "http://10.10.23.233:8000/api/v1",
+      "STORAGE_BASE_URL": "http://10.10.23.233:8000",
       "router": {},
       "eas": {
         "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"

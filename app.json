@@ -24,8 +24,7 @@
         "backgroundColor": "#0d5ddd"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.agungsetiob.protap",
-      "versionCode": 1
+      "package": "com.agungsetiob.protap"
     },
     "web": {
       "favicon": "./assets/logo_tanbu.png"

@@ -392,7 +392,7 @@ export default function RundownGenerator() {
                   style={tw`bg-slate-800 border border-slate-700 rounded-xl p-3 flex-row justify-between items-center`}
                 >
                   <Text style={tw`text-xs ${selectedAgenda ? "text-white" : "text-slate-400"} flex-1`} numberOfLines={1}>
-                    🔍 {selectedAgenda ? selectedAgenda.name : "Pilih Uraian Kegiatan..."}
+                    {selectedAgenda ? selectedAgenda.name : "Pilih Uraian Kegiatan..."}
                   </Text>
                   <Text style={tw`text-slate-400 text-xs ml-2`}>▼</Text>
                 </TouchableOpacity>
@@ -436,8 +436,8 @@ export default function RundownGenerator() {
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
               <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari acara/agenda</Text>
-              <TouchableOpacity onPress={() => setSearchModalVisible(false)} style={tw`bg-slate-800 p-2 rounded-full px-3`}>
-                <Text style={tw`text-slate-400 text-xs font-bold`}>Tutup</Text>
+              <TouchableOpacity onPress={() => setSearchModalVisible(false)} style={tw`bg-slate-700 p-1 rounded-full px-2`}>
+                <Text style={tw`text-white font-bold`}>X</Text>
               </TouchableOpacity>
             </View>
 

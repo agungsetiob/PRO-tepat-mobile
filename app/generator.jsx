@@ -15,12 +15,10 @@ import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import axios from "axios";
+import api from "./api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
-
-const { API_BASE_URL } = Constants.expoConfig.extra;
 
 export default function RundownGenerator() {
   const router = useRouter();
@@ -58,7 +56,7 @@ export default function RundownGenerator() {
 
   const fetchMasterAgendas = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/master-agendas`);
+      const response = await api.get('/master-agendas');
       if (response.data.success) {
         setMasterAgendas(response.data.data || []);
       }
@@ -134,7 +132,7 @@ export default function RundownGenerator() {
         items: rundownRows,
       };
 
-      const response = await axios.post(`${API_BASE_URL}/rundowns`, payload);
+      const response = await api.post('/rundowns', payload);
 
       if (response.data.success) {
         const savedRundown = response.data.data;
@@ -313,7 +311,7 @@ export default function RundownGenerator() {
               <TextInput
                 value={location}
                 onChangeText={setLocation}
-                placeholder="Contoh: RSUD dr. H. Andi Abdurrahman Noor"
+                placeholder="Contoh: Kantor Bupati"
                 placeholderTextColor="#64748b"
                 style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-5`}
               />
@@ -322,7 +320,7 @@ export default function RundownGenerator() {
               <TextInput
                 value={pic}
                 onChangeText={setPic}
-                placeholder="Contoh: Bagian Protokol Setda / RSUD"
+                placeholder="Contoh: Bagian Protokol"
                 placeholderTextColor="#64748b"
                 style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-5`}
               />
@@ -437,7 +435,7 @@ export default function RundownGenerator() {
         <View style={tw`flex-1 bg-black/70 justify-end`}>
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
-              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari acara</Text>
+              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari acara/agenda</Text>
               <TouchableOpacity onPress={() => setSearchModalVisible(false)} style={tw`bg-slate-800 p-2 rounded-full px-3`}>
                 <Text style={tw`text-slate-400 text-xs font-bold`}>Tutup</Text>
               </TouchableOpacity>
@@ -466,7 +464,7 @@ export default function RundownGenerator() {
               )}
               ListEmptyComponent={
                 <View style={tw`py-10 items-center`}>
-                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada.</Text>
+                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada acara/agenda.</Text>
                 </View>
               }
             />

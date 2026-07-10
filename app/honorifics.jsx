@@ -10,13 +10,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
+import api from "./api/api";
 import tw from 'twrnc';
 import Constants from 'expo-constants';
 import { Search, UserCircle2, Megaphone, Mic, Star, X } from "lucide-react-native";
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { API_BASE_URL } = Constants.expoConfig.extra;
 
 export default function Honorifics() {
   const router = useRouter();
@@ -31,7 +29,7 @@ export default function Honorifics() {
   const fetchHonorifics = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/honorifics`);
+      const response = await api.get('/honorifics');
       if (response.data.success) {
         setHonorifics(response.data.data || []);
       }
@@ -49,7 +47,7 @@ export default function Honorifics() {
     }
     setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/search-honorifics?q=${keyword}`);
+      const response = await api.get(`/search-honorifics?q=${keyword}`);
       if (response.data.success) {
         setHonorifics(response.data.data || []);
       }

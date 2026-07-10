@@ -7,18 +7,16 @@ import {
   TouchableOpacity,
   StatusBar,
   Image,
-  Alert,
+  Alert
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios from "axios";
+import api, { STORAGE_BASE_URL } from "./../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
-import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote, Download } from "lucide-react-native";
+import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote, Download, Loader } from "lucide-react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-
-const { API_BASE_URL, STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
 export default function ScenarioDetail() {
   const { slug } = useLocalSearchParams();
@@ -26,14 +24,33 @@ export default function ScenarioDetail() {
   const [scenario, setScenario] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [ratios, setRatios] = useState({});
 
   useEffect(() => {
     fetchDetailScenario();
   }, [slug]);
 
+  useEffect(() => {
+    if (scenario?.protocols) {
+      scenario.protocols.forEach((p) => {
+        if (p.image_infographic) {
+          Image.getSize(
+            `${STORAGE_BASE_URL}${p.image_infographic}`,
+            (w, h) => {
+              setRatios((prev) => ({ ...prev, [p.id]: w / h }));
+            },
+            (error) => {
+              console.error("Gagal mendapatkan ukuran gambar:", error);
+            }
+          );
+        }
+      });
+    }
+  }, [scenario?.protocols]);
+
   const fetchDetailScenario = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/scenarios/${slug}`);
+      const response = await api.get(`/scenarios/${slug}`);
       if (response.data.success) {
         setScenario(response.data.data);
       }
@@ -105,7 +122,7 @@ export default function ScenarioDetail() {
   if (!scenario) {
     return (
       <View style={tw`flex-1 bg-[#0d1731] justify-center items-center p-6`}>
-        <Text style={tw`text-slate-300 font-bold`}>Pedoman tidak ditemukan.</Text>
+        <Text style={tw`text-white font-bold`}>Pedoman tidak ditemukan.</Text>
         <TouchableOpacity
           onPress={() => router.back()}
           style={tw`mt-4 bg-slate-700 px-4 py-2 rounded-lg`}
@@ -154,17 +171,17 @@ export default function ScenarioDetail() {
 
         {/* DESKRIPSI & TAGS */}
         <View style={tw`bg-slate-800/80 p-5 border-b border-slate-700 shadow-sm`}>
-          <Text style={tw`text-xs font-bold text-slate-300 uppercase tracking-wider mb-1`}>
+          <Text style={tw`text-xs font-bold text-white uppercase tracking-wider mb-1`}>
             Deskripsi Aturan
           </Text>
-          <Text style={tw`text-xs text-slate-300 leading-relaxed mb-4`}>
+          <Text style={tw`text-xs text-white leading-relaxed mb-4`}>
             {scenario.description || "Tidak ada deskripsi tambahan."}
           </Text>
 
           <View style={tw`flex-row flex-wrap gap-1.5`}>
             {scenario.tags?.map((tag) => (
               <View key={tag.id} style={tw`bg-slate-700 px-2.5 py-1 rounded-md`}>
-                <Text style={tw`text-[10px] text-slate-300 font-bold`}>#{tag.name}</Text>
+                <Text style={tw`text-[10px] text-white font-bold`}>#{tag.name}</Text>
               </View>
             ))}
           </View>
@@ -182,7 +199,7 @@ export default function ScenarioDetail() {
 
                   {protocol.content && (
                     <View style={tw`bg-slate-800/80 p-4 rounded-xl border border-slate-700 shadow-sm mb-3`}>
-                      <Text style={tw`text-xs text-slate-300 leading-relaxed font-medium`}>
+                      <Text style={tw`text-xs text-white leading-relaxed font-medium`}>
                         {cleanHtml(protocol.content)}
                       </Text>
                     </View>
@@ -190,34 +207,36 @@ export default function ScenarioDetail() {
 
                   {protocol.image_infographic && (
                     <View style={tw`bg-slate-800/80 p-2 rounded-xl border border-slate-700 shadow-sm mb-4`}>
-                      <Image
-                        source={{ uri: `${STORAGE_BASE_URL}${protocol.image_infographic}` }}
-                        style={tw`w-full h-56 bg-slate-800 rounded-t-lg`}
-                        resizeMode="contain"
-                      />
-                      
-                      {/* Tombol Interaktif Unduh Gambar */}
-                      <TouchableOpacity
-                        onPress={() => handleDownloadImage(protocol.image_infographic, `denah-${scenario.slug}-${index}`)}
-                        disabled={isDownloading}
-                        style={tw`bg-slate-950/60 p-3 rounded-b-lg border-t border-slate-700/60 flex-row items-center justify-center gap-2`}
-                      >
-                        {isDownloading ? (
-                          <ActivityIndicator size="small" color="#14b8a6" />
-                        ) : (
-                          <Download size={14} color="#14b8a6" />
-                        )}
-                        <Text style={tw`text-[11px] font-black text-teal-400 uppercase tracking-wide`}>
-                          {isDownloading ? "Mengunduh file..." : "Simpan Gambar"}
-                        </Text>
-                      </TouchableOpacity>
+                      <View style={tw`relative`}>
+                        <Image
+                          source={{ uri: `${STORAGE_BASE_URL}${protocol.image_infographic}` }}
+                          style={[
+                            tw`w-full bg-slate-800 rounded-lg`,
+                            { aspectRatio: ratios[protocol.id] || 1 }
+                          ]}
+                          resizeMode="contain"
+                        />
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleDownloadImage(protocol.image_infographic, `denah-${scenario.slug}-${index}`)
+                          }
+                          disabled={isDownloading}
+                          style={tw`absolute bottom-1 right-1 bg-black/40 p-1 rounded`}
+                        >
+                          {isDownloading ? (
+                            <Loader size={18} color="#57e6d5" />
+                          ) : (
+                            <Download size={18} color="#57e6d5" />
+                          )}
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   )}
 
                   {/* SEATING RULES LIST */}
                   {protocol.seating_rules && protocol.seating_rules.length > 0 && (
                     <View>
-                      <Text style={tw`text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-3 ml-1`}>
+                      <Text style={tw`text-[11px] font-bold text-white uppercase tracking-wider mb-3 ml-1`}>
                         Urutan Penempatan Jabatan ({protocol.seating_rules.length})
                       </Text>
 
@@ -255,7 +274,7 @@ export default function ScenarioDetail() {
                                 <View style={tw`flex-row items-start gap-2`}>
                                   <Megaphone size={14} color="#94a3b8" style={tw`mr-1 mt-0.5`} />
                                   <Text style={tw`text-[11px] text-slate-400 min-w-[85px]`}>Sapaan Resmi:</Text>
-                                  <Text style={tw`flex-1 text-[11px] font-semibold text-slate-300`} numberOfLines={2}>
+                                  <Text style={tw`flex-1 text-[11px] font-semibold text-white`} numberOfLines={2}>
                                     {rule.honorific?.sapaan_resmi || "-"}
                                   </Text>
                                 </View>
@@ -263,7 +282,7 @@ export default function ScenarioDetail() {
                                 <View style={tw`flex-row items-start gap-2`}>
                                   <Mic size={14} color="#14b8a6" style={tw`mr-1 mt-0.5`} />
                                   <Text style={tw`text-[11px] text-slate-400 min-w-[85px]`}>Sapaan Lisan:</Text>
-                                  <Text style={tw`flex-1 text-[11px] font-semibold text-slate-300`} numberOfLines={2}>
+                                  <Text style={tw`flex-1 text-[11px] font-semibold text-white`} numberOfLines={2}>
                                     {rule.honorific?.sapaan_lisan || "-"}
                                   </Text>
                                 </View>
@@ -293,7 +312,7 @@ export default function ScenarioDetail() {
           ) : (
             /* LAYOUT TATA ACARA */
             <View>
-              <Text style={tw`text-xs font-bold text-slate-300 uppercase tracking-wider mb-3 ml-1`}>
+              <Text style={tw`text-xs font-bold text-white uppercase tracking-wider mb-3 ml-1`}>
                 ⏱️ Susunan Acara & Checklist Kegiatan
               </Text>
 
@@ -315,7 +334,7 @@ export default function ScenarioDetail() {
                 </Text>
               )}
 
-              <Text style={tw`text-xs font-bold text-slate-300 uppercase tracking-wider mt-4 mb-3 ml-1`}>
+              <Text style={tw`text-xs font-bold text-white uppercase tracking-wider mt-4 mb-3 ml-1`}>
                 📦 Perlengkapan & Kebutuhan Logistik
               </Text>
 
@@ -324,7 +343,7 @@ export default function ScenarioDetail() {
                   {scenario.equipments.map((eq, eIdx) => (
                     <View key={eq.id} style={tw`flex-row items-center justify-between py-2 ${eIdx !== scenario.equipments.length - 1 ? "border-b border-slate-700" : ""}`}>
                       <Text style={tw`text-xs font-semibold text-white`}>• {eq.name}</Text>
-                      <Text style={tw`text-[10px] bg-slate-700 text-slate-300 font-bold px-2.5 py-0.5 rounded-full uppercase`}>
+                      <Text style={tw`text-[10px] bg-slate-700 text-white font-bold px-2.5 py-0.5 rounded-full uppercase`}>
                         {eq.category}
                       </Text>
                     </View>

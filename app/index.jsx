@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useFonts, Poppins_400Regular, Poppins_700Bold, Poppins_900Black } from '@expo-google-fonts/poppins';
+import { useFonts, Montserrat_400Regular, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 import {
   Text,
   View,
@@ -14,17 +14,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import axios from "axios";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { LinearGradient } from 'expo-linear-gradient';
-
 import * as LucideIcons from "lucide-react-native";
+import api, { STORAGE_BASE_URL } from "./api/api";
 
 const { width } = Dimensions.get("window");
-const { API_BASE_URL, STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
-// Komponen Helper untuk Merender Ikon Lucide secara Dinamis
 const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
   const pascalCaseName = name
     ? name
@@ -40,12 +37,12 @@ const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
 export default function Home() {
   const router = useRouter();
   
-  // 1. Memuat Font Poppins
   const [fontsLoaded] = useFonts({
-    'Poppins-Regular': Poppins_400Regular,
-    'Poppins-Bold': Poppins_700Bold,
-    'Poppins-Black': Poppins_900Black,
+    'Montserrat-Regular': Montserrat_400Regular,
+    'Montserrat-Bold': Montserrat_700Bold,
+    'Montserrat-Black': Montserrat_900Black,
   });
+
 
   const [categories, setCategories] = useState([]);
   const [scenarios, setScenarios] = useState([]);
@@ -84,8 +81,8 @@ export default function Home() {
   const initApp = async () => {
     try {
       const [catRes, scenRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/dashboard`),
-        axios.get(`${API_BASE_URL}/scenarios`),
+        api.get(`/dashboard`),
+        api.get(`/scenarios`),
       ]);
 
       if (catRes.data.success) setCategories(catRes.data.data);
@@ -112,8 +109,8 @@ export default function Home() {
     setRefreshing(true);
     try {
       const [catRes, scenRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/dashboard`),
-        axios.get(`${API_BASE_URL}/scenarios`),
+        api.get(`/dashboard`),
+        api.get(`/scenarios`),
       ]);
 
       if (catRes.data.success) setCategories(catRes.data.data);
@@ -135,7 +132,7 @@ export default function Home() {
 
     setIsLoadingMore(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/scenarios?cursor=${nextCursor}`);
+      const response = await api.get(`/scenarios?cursor=${nextCursor}`);
 
       if (response.data.success) {
         const newData = response.data.data || [];
@@ -165,13 +162,13 @@ export default function Home() {
       return (
         <View style={tw`py-4 items-center`}>
           <ActivityIndicator size="small" color="#6b46c1" />
-          <Text style={[tw`text-[10px] text-slate-400 mt-1`, { fontFamily: 'Poppins-Bold' }]}>Memuat data...</Text>
+          <Text style={[tw`text-[10px] text-slate-400 mt-1`, { fontFamily: 'Montserrat-Regular' }]}>Memuat data...</Text>
         </View>
       );
     }
     return (
       <View style={tw`mt-6 mb-12 items-center`}>
-        <Text style={[tw`text-[10px] text-slate-400`, { fontFamily: 'Poppins-Bold' }]}>PROTAP v1.1</Text>
+        <Text style={[tw`text-[10px] text-slate-400`, { fontFamily: 'Montserrat-Regular' }]}>PROTAP v1.1</Text>
       </View>
     );
   };
@@ -189,10 +186,10 @@ export default function Home() {
             <DynamicIcon name="crown" color="#ffffff" size={20} />
           </View>
           <View>
-            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Poppins-Bold' }]}>
+            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Montserrat-Bold' }]}>
               Panduan Digital Protokol
             </Text>
-            <Text style={[tw`text-teal-200 text-[11px] mt-0.5`, { fontFamily: 'Poppins-Regular' }]}>
+            <Text style={[tw`text-teal-200 text-[11px] mt-0.5`, { fontFamily: 'Montserrat-Regular' }]}>
               Sapaan Resmi & Lisan Pejabat
             </Text>
           </View>
@@ -210,11 +207,11 @@ export default function Home() {
             <DynamicIcon name="file-text" color="#a855f7" size={20} />
           </View>
           <View>
-            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Poppins-Bold' }]}>
+            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Montserrat-Bold' }]}>
               Rundown Generator
             </Text>
-            <Text style={[tw`text-purple-300 text-[11px] mt-0.5`, { fontFamily: 'Poppins-Regular' }]}>
-              Buat Susunan Acara Instan (PDF)
+            <Text style={[tw`text-purple-300 text-[11px] mt-0.5`, { fontFamily: 'Montserrat-Regular' }]}>
+              Buat Susunan Acara (PDF)
             </Text>
           </View>
         </View>
@@ -222,7 +219,7 @@ export default function Home() {
       </TouchableOpacity>
 
       {/* GRID KATEGORI UTAMA */}
-      <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Poppins-Bold' }]}>
+      <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Montserrat-Bold' }]}>
         Kategori Pedoman
       </Text>
       <View style={tw`flex-row flex-wrap gap-3 mb-6`}>
@@ -235,7 +232,7 @@ export default function Home() {
             <View style={tw`${getCategoryColor(cat.type)} w-12 h-12 rounded-2xl items-center justify-center mb-3 shadow-sm`}>
               <DynamicIcon name={cat.icon} color="#ffffff" size={22} />
             </View>
-            <Text style={[tw`text-xs text-white text-center uppercase tracking-wide`, { fontFamily: 'Poppins-Black' }]}>
+            <Text style={tw`text-xs font-bold text-white text-center uppercase tracking-wide`}>
               {cat.name}
             </Text>
           </TouchableOpacity>
@@ -243,7 +240,7 @@ export default function Home() {
       </View>
 
       {/* JUDUL WIDGET SEBELUM DAFTAR LIST ITEM */}
-      <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Poppins-Bold' }]}>
+      <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Montserrat-Bold' }]}>
         ⚡ Skenario Protokol Terkini
       </Text>
     </View>
@@ -263,10 +260,10 @@ export default function Home() {
         style={tw`w-12 h-12 rounded-xl bg-slate-700 mr-3`}
       />
       <View style={tw`flex-1`}>
-        <Text style={[tw`text-xs text-white`, { fontFamily: 'Poppins-Black' }]} numberOfLines={1}>
+        <Text style={[tw`text-xs text-white`, { fontFamily: 'Montserrat-Bold' }]} numberOfLines={1}>
           {item.title}
         </Text>
-        <Text style={[tw`text-[10px] text-slate-400 mt-0.5 uppercase`, { fontFamily: 'Poppins-Bold' }]}>
+        <Text style={[tw`text-[10px] text-slate-400 mt-0.5 uppercase`, { fontFamily: 'Montserrat-Bold' }]}>
           {item.category?.name || "Pedoman"} • {item.layout_type || 'Resmi'}
         </Text>
       </View>
@@ -295,10 +292,10 @@ export default function Home() {
               resizeMode="contain"
             />
 
-            {/* 3. Ganti font PROTAP di Splash Screen */}
-            <Text style={[tw`text-white text-4xl tracking-wide`, { fontFamily: 'Poppins-Black' }]}>
-                PROTAP
+            <Text style={[tw`text-white text-4xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>
+              PROTAP
             </Text>
+
 
             <Image
               source={require("../assets/protokoler.png")}
@@ -308,7 +305,7 @@ export default function Home() {
 
             {/* 4. Ganti font Panduan Resmi di Splash Screen */}
             <View style={tw`-mt-28 items-center`}>
-              <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Poppins-Bold' }]}>
+              <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>
                 Panduan Resmi Operasional Tata Acara Protokol
               </Text>
             </View>
@@ -317,7 +314,7 @@ export default function Home() {
 
         <View style={tw`absolute bottom-12 items-center`}>
           <ActivityIndicator color="#22a594" size="large" />
-          <Text style={[tw`text-white text-[12px] mt-4 uppercase tracking-widest`, { fontFamily: 'Poppins-Bold' }]}>
+          <Text style={[tw`text-white text-[12px] mt-4 uppercase tracking-widest`, { fontFamily: 'Montserrat-Bold' }]}>
             Kabupaten Tanah Bumbu
           </Text>
         </View>
@@ -342,7 +339,7 @@ export default function Home() {
                 style={tw`w-7 h-7 -mr-1`}
                 resizeMode="contain"
               />
-              <Text style={[tw`text-white text-2xl tracking-wide`, { fontFamily: 'Poppins-Black' }]}>
+              <Text style={[tw`text-white text-2xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>
                 ROTAP
               </Text>
             </View>
@@ -354,7 +351,7 @@ export default function Home() {
             />
           </View>
 
-          <Text style={[tw`text-teal-200 text-sm tracking-wider uppercase`, { fontFamily: 'Poppins-Bold' }]}>
+          <Text style={[tw`text-teal-200 text-sm tracking-wider uppercase`, { fontFamily: 'Montserrat-Bold' }]}>
             Kabupaten Tanah Bumbu
           </Text>
 
@@ -364,7 +361,7 @@ export default function Home() {
             style={tw`flex-row items-center bg-white/15 rounded-full px-4 py-2.5 shadow-md mt-4 border border-white/30`}
           >
             <DynamicIcon name="search" color="#ffffff" size={18} />
-            <Text style={[tw`text-white/90 text-sm flex-1 ml-2`, { fontFamily: 'Poppins-Regular' }]}>
+            <Text style={[tw`text-white/90 text-sm flex-1 ml-2`, { fontFamily: 'Montserrat-Regular' }]}>
               Cari acara, denah, atau pedoman...
             </Text>
           </TouchableOpacity>

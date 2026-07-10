@@ -9,14 +9,12 @@ import {
   Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import axios from "axios";
+import api, { STORAGE_BASE_URL } from "./../../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { Search } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-
-const { API_BASE_URL, STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
 export default function CategoryScenarios() {
   const { slug } = useLocalSearchParams();
@@ -39,8 +37,8 @@ export default function CategoryScenarios() {
   const fetchInitialScenarios = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/categories/${slug}/scenarios?page=1`
+      const response = await api.get(
+        `/categories/${slug}/scenarios?page=1`
       );
       if (response.data.success) {
         setScenarios(response.data.data || []);
@@ -63,8 +61,8 @@ export default function CategoryScenarios() {
     const nextPage = page + 1;
 
     try {
-      const response = await axios.get(
-        `${API_BASE_URL}/categories/${slug}/scenarios?page=${nextPage}`
+      const response = await api.get(
+        `/categories/${slug}/scenarios?page=${nextPage}`
       );
       if (response.data.success) {
         setScenarios((prev) => [...prev, ...(response.data.data || [])]);
@@ -219,7 +217,7 @@ export default function CategoryScenarios() {
             style={tw`mx-5 bg-slate-800/80 border border-dashed border-slate-600 p-8 rounded-2xl items-center justify-center mt-4`}
           >
             <Text style={tw`text-sm text-slate-400 italic text-center`}>
-              Belum ada sub-skenario yang aktif di dalam kategori ini.
+              Belum ada skenario yang aktif di dalam kategori ini.
             </Text>
           </View>
         }

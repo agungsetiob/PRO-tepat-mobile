@@ -59,7 +59,6 @@ export default function Home() {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
-    // Mulai Animasi Splash
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -73,11 +72,9 @@ export default function Home() {
       }),
     ]).start();
 
-    // Ambil Data Awal
     initApp();
   }, []);
 
-  // Memuat data awal gabungan
   const initApp = async () => {
     try {
       const [catRes, scenRes] = await Promise.all([
@@ -92,7 +89,6 @@ export default function Home() {
         setHasMore(scenRes.data.has_more);
       }
 
-      // Jalankan splash minimal 1.5 detik
       setTimeout(() => {
         setShowSplash(false);
         setIsLoading(false);
@@ -104,7 +100,6 @@ export default function Home() {
     }
   };
 
-  // Fungsi Pull to Refresh
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
@@ -126,7 +121,6 @@ export default function Home() {
     }
   }, []);
 
-  // Fungsi pemicu saat user scroll mendekati bagian bawah Beranda
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore || !nextCursor) return;
 
@@ -147,7 +141,6 @@ export default function Home() {
     }
   };
 
-  // 2. Cegah rendering jika font belum selesai di-load oleh sistem Expo
   if (!fontsLoaded) {
     return (
       <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: "#0d1731" }]}>
@@ -156,7 +149,6 @@ export default function Home() {
     );
   }
 
-  // Komponen Loader Tambahan di Bawah List saat mengambil data lama
   const renderFooter = () => {
     if (isLoadingMore) {
       return (
@@ -176,7 +168,6 @@ export default function Home() {
   // ===================== RENDER COMPONENT HEADER =====================
   const renderHeader = () => (
     <View style={tw`pt-6`}>
-      {/* KAMUS SAKU */}
       <TouchableOpacity
         onPress={() => router.push("/honorifics")}
         style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
@@ -197,7 +188,6 @@ export default function Home() {
         <Text style={tw`text-white font-bold text-base`}>❯</Text>
       </TouchableOpacity>
 
-      {/* TOMBOL RUNDOWN GENERATOR */}
       <TouchableOpacity
         onPress={() => router.push("/generator")}
         style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-6 flex-row items-center justify-between border border-teal-500/20`}
@@ -218,10 +208,6 @@ export default function Home() {
         <Text style={tw`text-white font-bold text-base`}>❯</Text>
       </TouchableOpacity>
 
-      {/* GRID KATEGORI UTAMA */}
-      <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Montserrat-Bold' }]}>
-        Kategori Pedoman
-      </Text>
       <View style={tw`flex-row flex-wrap gap-3 mb-6`}>
         {categories.map((cat) => (
           <TouchableOpacity
@@ -237,9 +223,20 @@ export default function Home() {
             </Text>
           </TouchableOpacity>
         ))}
+        <TouchableOpacity
+            key="manuals"
+            onPress={() => router.push(`/manuals`)}
+            style={tw`bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm flex-1 min-w-[45%] items-center`}
+          >
+            <View style={tw`bg-sky-500 w-12 h-12 rounded-2xl items-center justify-center mb-3 shadow-sm`}>
+              <DynamicIcon name="book-open" color="#ffffff" size={22} />
+            </View>
+            <Text style={tw`text-xs font-bold text-white text-center uppercase tracking-wide`}>
+              Manual Book
+            </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* JUDUL WIDGET SEBELUM DAFTAR LIST ITEM */}
       <Text style={[tw`text-xs text-slate-300 tracking-widest uppercase mb-3`, { fontFamily: 'Montserrat-Bold' }]}>
         ⚡ Skenario Protokol Terkini
       </Text>
@@ -303,7 +300,6 @@ export default function Home() {
               resizeMode="contain"
             />
 
-            {/* 4. Ganti font Panduan Resmi di Splash Screen */}
             <View style={tw`-mt-28 items-center`}>
               <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>
                 Panduan Resmi Operasional Tata Acara Protokol
@@ -367,7 +363,6 @@ export default function Home() {
           </TouchableOpacity>
         </LinearGradient>
 
-        {/* LAYOUT UTAMA - FLATLIST UNTUK KONTEN SCROLLABLE */}
         <FlatList
           data={scenarios}
           renderItem={renderItem}

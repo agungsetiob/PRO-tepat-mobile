@@ -19,6 +19,7 @@ import Constants from "expo-constants";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LucideIcons from "lucide-react-native";
 import api, { STORAGE_BASE_URL } from "./api/api";
+import PinGateModal from "./components/PinGateModal";
 
 const { width } = Dimensions.get("window");
 
@@ -36,12 +37,20 @@ const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
 
 export default function Home() {
   const router = useRouter();
-  
+
   const [fontsLoaded] = useFonts({
     'Montserrat-Regular': Montserrat_400Regular,
     'Montserrat-Bold': Montserrat_700Bold,
     'Montserrat-Black': Montserrat_900Black,
   });
+
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [targetRoute, setTargetRoute] = useState("");
+
+  const handleProtectedNavigation = (routePath) => {
+    setTargetRoute(routePath);
+    setPinModalVisible(true);
+  };
 
 
   const [categories, setCategories] = useState([]);
@@ -189,7 +198,7 @@ export default function Home() {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => router.push("/generator")}
+        onPress={() => handleProtectedNavigation("/generator")}
         style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
       >
         <View style={tw`flex-row items-center`}>
@@ -244,16 +253,16 @@ export default function Home() {
           </TouchableOpacity>
         ))}
         <TouchableOpacity
-            key="manuals"
-            onPress={() => router.push(`/manuals`)}
-            style={tw`bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm flex-1 min-w-[45%] items-center`}
-          >
-            <View style={tw`bg-sky-500 w-12 h-12 rounded-2xl items-center justify-center mb-3 shadow-sm`}>
-              <DynamicIcon name="book-open" color="#ffffff" size={22} />
-            </View>
-            <Text style={tw`text-xs font-bold text-white text-center uppercase tracking-wide`}>
-              Manual Book
-            </Text>
+          key="manuals"
+          onPress={() => router.push(`/manuals`)}
+          style={tw`bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm flex-1 min-w-[45%] items-center`}
+        >
+          <View style={tw`bg-sky-500 w-12 h-12 rounded-2xl items-center justify-center mb-3 shadow-sm`}>
+            <DynamicIcon name="book-open" color="#ffffff" size={22} />
+          </View>
+          <Text style={tw`text-xs font-bold text-white text-center uppercase tracking-wide`}>
+            Manual Book
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -403,6 +412,14 @@ export default function Home() {
           }
         />
       </SafeAreaView>
+      <PinGateModal
+        visible={pinModalVisible}
+        onClose={() => setPinModalVisible(false)}
+        onAuthSuccess={() => {
+          setPinModalVisible(false);
+          router.push(targetRoute);
+        }}
+      />
     </>
   );
 }

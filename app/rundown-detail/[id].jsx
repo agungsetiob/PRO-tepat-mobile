@@ -11,10 +11,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../api/api";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
+
+import PinGateModal from "../components/PinGateModal";
 
 const { STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
@@ -26,6 +29,10 @@ export default function RundownDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("rundown"); // 'rundown' atau 'presensi'
   const [updatingId, setUpdatingId] = useState(null);
+
+  // ➕ State Pembantu untuk Otorisasi Gerbang PIN
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // Menyimpan aksi tertunda { invitationId, statusTarget }
 
   useEffect(() => {
     fetchDetail();
@@ -45,15 +52,40 @@ export default function RundownDetail() {
     }
   };
 
-  // Fungsi memicu Kamera HP Protokol & kirim data presensi ke Laravel
-  const handlePresence = async (invitationId, statusTarget) => {
+  const handlePresencePress = async (invitationId, statusTarget) => {
+    try {
+      const savedPin = await AsyncStorage.getItem("saved_protokol_pin_string");
+      
+      if (savedPin && savedPin.length === 6) {
+        setUpdatingId(invitationId);
+        
+        const response = await api.post("/rundowns/verify-pin", { pin: savedPin });
+        
+        setUpdatingId(null);
+        if (response.data.success) {
+          proceedWithPresence(invitationId, statusTarget);
+          return;
+        }
+      }
+      
+      await AsyncStorage.removeItem("saved_protokol_pin_string");
+      setPendingAction({ invitationId, statusTarget });
+      setPinModalVisible(true);
+
+    } catch (error) {
+      setUpdatingId(null);
+      await AsyncStorage.removeItem("saved_protokol_pin_string");
+      setPendingAction({ invitationId, statusTarget });
+      setPinModalVisible(true);
+    }
+  };
+
+  const proceedWithPresence = async (invitationId, statusTarget) => {
     if (statusTarget === "tidak_hadir") {
-      // Jika tidak hadir, langsung tembak tanpa foto
       executePresenceUpload(invitationId, statusTarget, null);
       return;
     }
 
-    // Jika hadir, minta izin kamera dan ambil foto pejabat bersangkutan
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
       Alert.alert(
@@ -100,7 +132,6 @@ export default function RundownDetail() {
       );
 
       if (response.data.success) {
-        // Update state lokal undangan biar UI langsung berubah warna
         setRundownData((prev) => ({
           ...prev,
           invitations: prev.invitations.map((inv) =>
@@ -214,15 +245,13 @@ export default function RundownDetail() {
           keyExtractor={(item) => "inv-row-" + item.id}
           contentContainerStyle={tw`px-5 pt-4 pb-10`}
           renderItem={({ item }) => {
-            // 1. Deklarasi Konfigurasi Gaya Visual Berdasarkan Status
             let cardStyle = tw`bg-slate-800/80 border-slate-700/60 opacity-100`;
-            let leftBarColor = tw`bg-slate-600`; // Garis vertikal di sisi paling kiri
+            let leftBarColor = tw`bg-slate-600`;
 
             if (item.status === "hadir") {
               cardStyle = tw`bg-emerald-950/20 border-emerald-500/30 opacity-100`;
-              leftBarColor = tw`bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]`; // Efek glow tipis
+              leftBarColor = tw`bg-emerald-500 shadow-emerald-500/50`;
             } else if (item.status === "tidak_hadir") {
-              // Meredupkan opacity menjadi 60% agar fokus mata protokol tertuju pada yang hadir
               cardStyle = tw`bg-slate-900/40 border-red-500/20 opacity-60`;
               leftBarColor = tw`bg-red-500`;
             }
@@ -234,10 +263,8 @@ export default function RundownDetail() {
                   cardStyle,
                 ]}
               >
-                {/* INDIKATOR 1: Garis Tegas/Glow di Sisi Kiri Kotak */}
                 <View style={[tw`w-1.5 h-full`, leftBarColor]} />
 
-                {/* Konten Utama di Dalam Card */}
                 <View style={tw`flex-1 p-3.5`}>
                   <View style={tw`flex-row justify-between items-start mb-2.5`}>
                     <View style={tw`flex-1 mr-2`}>
@@ -258,7 +285,6 @@ export default function RundownDetail() {
                       </Text>
                     </View>
 
-                    {/* INDIKATOR 2: Thumbnail Bukti Foto Wajah Kamera */}
                     {item.status === "hadir" && item.presence_photo && (
                       <Image
                         source={{
@@ -283,7 +309,7 @@ export default function RundownDetail() {
                     ) : (
                       <>
                         <TouchableOpacity
-                          onPress={() => handlePresence(item.id, "hadir")}
+                          onPress={() => handlePresencePress(item.id, "hadir")}
                           style={tw`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
                             item.status === "hadir"
                               ? "bg-emerald-600 shadow-md"
@@ -298,7 +324,7 @@ export default function RundownDetail() {
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                          onPress={() => handlePresence(item.id, "tidak_hadir")}
+                          onPress={() => handlePresencePress(item.id, "tidak_hadir")}
                           style={tw`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
                             item.status === "tidak_hadir"
                               ? "bg-red-600 shadow-md"
@@ -320,6 +346,21 @@ export default function RundownDetail() {
           }}
         />
       )}
+
+      <PinGateModal
+        visible={pinModalVisible}
+        onClose={() => {
+          setPinModalVisible(false);
+          setPendingAction(null);
+        }}
+        onAuthSuccess={() => {
+          setPinModalVisible(false);
+          if (pendingAction) {
+            proceedWithPresence(pendingAction.invitationId, pendingAction.statusTarget);
+            setPendingAction(null);
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -56,7 +56,10 @@ export default function RundownDetail() {
     // Jika hadir, minta izin kamera dan ambil foto pejabat bersangkutan
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (permissionResult.granted === false) {
-      Alert.alert("Izin Ditolak", "Aplikasi butuh akses kamera untuk mengambil foto bukti fisik kehadiran.");
+      Alert.alert(
+        "Izin Ditolak",
+        "Aplikasi butuh akses kamera untuk mengambil foto bukti fisik kehadiran.",
+      );
       return;
     }
 
@@ -67,7 +70,11 @@ export default function RundownDetail() {
     });
 
     if (!cameraResult.canceled && cameraResult.assets[0]) {
-      executePresenceUpload(invitationId, statusTarget, cameraResult.assets[0].uri);
+      executePresenceUpload(
+        invitationId,
+        statusTarget,
+        cameraResult.assets[0].uri,
+      );
     }
   };
 
@@ -84,16 +91,26 @@ export default function RundownDetail() {
         formData.append("photo", { uri: imageUri, name: filename, type });
       }
 
-      const response = await api.post(`/invitations/${invitationId}/presence`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.post(
+        `/invitations/${invitationId}/presence`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        },
+      );
 
       if (response.data.success) {
         // Update state lokal undangan biar UI langsung berubah warna
         setRundownData((prev) => ({
           ...prev,
           invitations: prev.invitations.map((inv) =>
-            inv.id === invitationId ? { ...inv, status: response.data.data.status, presence_photo: response.data.data.presence_photo } : inv
+            inv.id === invitationId
+              ? {
+                  ...inv,
+                  status: response.data.data.status,
+                  presence_photo: response.data.data.presence_photo,
+                }
+              : inv,
           ),
         }));
       }
@@ -114,23 +131,56 @@ export default function RundownDetail() {
   }
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={["bottom", "left", "right"]}>
+    <SafeAreaView
+      style={tw`flex-1 bg-[#0d1731]`}
+      edges={["bottom", "left", "right"]}
+    >
       {/* HEADER BANNER */}
-      <LinearGradient colors={["#3bd9e8", "#9359e9"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={tw`px-5 pt-8 pb-4 rounded-b-3xl shadow-md`}>
+      <LinearGradient
+        colors={["#3bd9e8", "#9359e9"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={tw`px-5 pt-8 pb-4 rounded-b-3xl shadow-md`}
+      >
         <View style={tw`flex-row items-center mb-3`}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}><Text style={tw`text-white text-xl font-bold`}>❮</Text></TouchableOpacity>
-          <Text style={tw`text-white text-base font-black uppercase flex-1`} numberOfLines={1}>{rundownData.event_name}</Text>
+          <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
+            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+          </TouchableOpacity>
+          <Text
+            style={tw`text-white text-base font-black uppercase flex-1`}
+            numberOfLines={1}
+          >
+            {rundownData.event_name}
+          </Text>
         </View>
-        <Text style={tw`text-teal-100 text-[11px] font-medium`}>📍 {rundownData.location} • 📅 {rundownData.date}</Text>
+        <Text style={tw`text-teal-100 text-[11px] font-medium`}>
+          📍 {rundownData.location} • 📅 {rundownData.date}
+        </Text>
       </LinearGradient>
 
       {/* NAVIGATOR TAB BAR */}
-      <View style={tw`flex-row mx-5 bg-slate-800 p-1 rounded-xl mt-4 border border-slate-700`}>
-        <TouchableOpacity onPress={() => setActiveTab("rundown")} style={tw`flex-1 py-2 rounded-lg items-center ${activeTab === "rundown" ? "bg-teal-500" : ""}`}>
-          <Text style={tw`text-xs font-black uppercase ${activeTab === "rundown" ? "text-slate-900" : "text-slate-400"}`}>⚡ Rundown</Text>
+      <View
+        style={tw`flex-row mx-5 bg-slate-800 p-1 rounded-xl mt-4 border border-slate-700`}
+      >
+        <TouchableOpacity
+          onPress={() => setActiveTab("rundown")}
+          style={tw`flex-1 py-2 rounded-lg items-center ${activeTab === "rundown" ? "bg-teal-500" : ""}`}
+        >
+          <Text
+            style={tw`text-xs font-black uppercase ${activeTab === "rundown" ? "text-slate-900" : "text-slate-400"}`}
+          >
+            ⚡ Rundown
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab("presensi")} style={tw`flex-1 py-2 rounded-lg items-center ${activeTab === "presensi" ? "bg-indigo-500" : ""}`}>
-          <Text style={tw`text-xs font-black uppercase ${activeTab === "presensi" ? "text-white" : "text-slate-400"}`}>👥 Presensi VIP</Text>
+        <TouchableOpacity
+          onPress={() => setActiveTab("presensi")}
+          style={tw`flex-1 py-2 rounded-lg items-center ${activeTab === "presensi" ? "bg-indigo-500" : ""}`}
+        >
+          <Text
+            style={tw`text-xs font-black uppercase ${activeTab === "presensi" ? "text-white" : "text-slate-400"}`}
+          >
+            👥 Presensi VIP
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -141,11 +191,19 @@ export default function RundownDetail() {
           keyExtractor={(item) => "det-row-" + item.id}
           contentContainerStyle={tw`px-5 pt-4 pb-10`}
           renderItem={({ item, index }) => (
-            <View style={tw`bg-slate-800/60 border border-slate-700 p-3.5 rounded-2xl mb-2.5 flex-row gap-3 items-center`}>
-              <Text style={tw`text-teal-400 font-black text-xs`}>#{index + 1}</Text>
+            <View
+              style={tw`bg-slate-800/60 border border-slate-700 p-3.5 rounded-2xl mb-2.5 flex-row gap-3 items-center`}
+            >
+              <Text style={tw`text-teal-400 font-black text-xs`}>
+                #{index + 1}
+              </Text>
               <View style={tw`flex-1`}>
-                <Text style={tw`text-white text-xs font-bold mb-0.5`}>{item.master_agenda?.name}</Text>
-                <Text style={tw`text-slate-400 text-[10px]`}>⏱️ Rentang: {item.start_time} - {item.end_time} WITA</Text>
+                <Text style={tw`text-white text-xs font-bold mb-0.5`}>
+                  {item.master_agenda?.name}
+                </Text>
+                <Text style={tw`text-slate-400 text-[10px]`}>
+                  ⏱️ Rentang: {item.start_time} - {item.end_time} WITA
+                </Text>
               </View>
             </View>
           )}
@@ -156,47 +214,106 @@ export default function RundownDetail() {
           keyExtractor={(item) => "inv-row-" + item.id}
           contentContainerStyle={tw`px-5 pt-4 pb-10`}
           renderItem={({ item }) => {
-            // Evaluasi warna latar baris berdasarkan status presensi saat ini
-            let statusColor = "border-slate-700 bg-slate-800/60";
-            if (item.status === "hadir") statusColor = "border-emerald-500/40 bg-emerald-950/20";
-            if (item.status === "tidak_hadir") statusColor = "border-red-500/30 bg-red-950/20";
+            // 1. Deklarasi Konfigurasi Gaya Visual Berdasarkan Status
+            let cardStyle = tw`bg-slate-800/80 border-slate-700/60 opacity-100`;
+            let leftBarColor = tw`bg-slate-600`; // Garis vertikal di sisi paling kiri
+
+            if (item.status === "hadir") {
+              cardStyle = tw`bg-emerald-950/20 border-emerald-500/30 opacity-100`;
+              leftBarColor = tw`bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]`; // Efek glow tipis
+            } else if (item.status === "tidak_hadir") {
+              // Meredupkan opacity menjadi 60% agar fokus mata protokol tertuju pada yang hadir
+              cardStyle = tw`bg-slate-900/40 border-red-500/20 opacity-60`;
+              leftBarColor = tw`bg-red-500`;
+            }
 
             return (
-              <View style={tw`border p-3.5 rounded-2xl mb-3 ${statusColor}`}>
-                <View style={tw`flex-row justify-between items-start mb-2.5`}>
-                  <View style={tw`flex-1 mr-2`}>
-                    <Text style={tw`text-white text-sm font-black uppercase`}>{item.honorific?.jabatan}</Text>
-                    <Text style={tw`text-slate-400 text-[11px] mt-0.5`}>👤 Sapaan Resmi: {item.honorific?.sapaan_resmi || "-"}</Text>
-                    <Text style={tw`text-amber-300/90 text-[10px] italic mt-0.5`}>📢 Sapaan Lisan: "{item.honorific?.sapaan_lisan}"</Text>
+              <View
+                style={[
+                  tw`border rounded-2xl mb-3 flex-row overflow-hidden`,
+                  cardStyle,
+                ]}
+              >
+                {/* INDIKATOR 1: Garis Tegas/Glow di Sisi Kiri Kotak */}
+                <View style={[tw`w-1.5 h-full`, leftBarColor]} />
+
+                {/* Konten Utama di Dalam Card */}
+                <View style={tw`flex-1 p-3.5`}>
+                  <View style={tw`flex-row justify-between items-start mb-2.5`}>
+                    <View style={tw`flex-1 mr-2`}>
+                      <Text
+                        style={tw`text-white text-sm font-black uppercase tracking-wide`}
+                      >
+                        {item.honorific?.jabatan}
+                      </Text>
+                      <Text
+                        style={tw`text-slate-400 text-[11px] mt-0.5 font-medium`}
+                      >
+                        👤 Nama: {item.honorific?.sapaan_resmi || "-"}
+                      </Text>
+                      <Text
+                        style={tw`text-amber-300/80 text-[10px] italic mt-0.5 font-medium`}
+                      >
+                        📢 Sapaan: "{item.honorific?.sapaan_lisan}"
+                      </Text>
+                    </View>
+
+                    {/* INDIKATOR 2: Thumbnail Bukti Foto Wajah Kamera */}
+                    {item.status === "hadir" && item.presence_photo && (
+                      <Image
+                        source={{
+                          uri: `${STORAGE_BASE_URL}${item.presence_photo}`,
+                        }}
+                        style={tw`w-12 h-16 bg-slate-700 rounded-xl border border-emerald-500/30`}
+                        resizeMode="cover"
+                      />
+                    )}
                   </View>
-                  
-                  {/* Foto Bukti Kehadiran */}
-                  {item.status === "hadir" && item.presence_photo && (
-                    <Image source={{ uri: `${STORAGE_BASE_URL}${item.presence_photo}` }} style={tw`w-12 h-16 bg-slate-700 rounded-lg border border-slate-600`} resizeMode="cover" />
-                  )}
-                </View>
 
-                {/* AREA ACTION BUTTON PROTOKOL */}
-                <View style={tw`flex-row gap-2 border-t border-slate-800 pt-2.5 mt-1`}>
-                  {updatingId === item.id ? (
-                    <ActivityIndicator size="small" color="#3bd9e8" style={tw`mx-auto`} />
-                  ) : (
-                    <>
-                      <TouchableOpacity
-                        onPress={() => handlePresence(item.id, "hadir")}
-                        style={tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${item.status === "hadir" ? "bg-emerald-600" : "bg-slate-700"}`}
-                      >
-                        <Text style={tw`text-[11px] font-black text-white uppercase`}>📸 Hadir</Text>
-                      </TouchableOpacity>
+                  {/* AREA ACTION BUTTON PROTOKOL */}
+                  <View
+                    style={tw`flex-row gap-2 border-t border-slate-800/60 pt-2.5 mt-1`}
+                  >
+                    {updatingId === item.id ? (
+                      <ActivityIndicator
+                        size="small"
+                        color="#3bd9e8"
+                        style={tw`mx-auto py-1`}
+                      />
+                    ) : (
+                      <>
+                        <TouchableOpacity
+                          onPress={() => handlePresence(item.id, "hadir")}
+                          style={tw`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+                            item.status === "hadir"
+                              ? "bg-emerald-600 shadow-md"
+                              : "bg-slate-700/50 border border-slate-600/40"
+                          }`}
+                        >
+                          <Text
+                            style={tw`text-[11px] font-black text-white uppercase`}
+                          >
+                            📸 Hadir
+                          </Text>
+                        </TouchableOpacity>
 
-                      <TouchableOpacity
-                        onPress={() => handlePresence(item.id, "tidak_hadir")}
-                        style={tw`flex-1 py-2 rounded-xl items-center flex-row justify-center gap-1.5 ${item.status === "tidak_hadir" ? "bg-red-600" : "bg-slate-700"}`}
-                      >
-                        <Text style={tw`text-[11px] font-black text-white uppercase`}>❌ Absen</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
+                        <TouchableOpacity
+                          onPress={() => handlePresence(item.id, "tidak_hadir")}
+                          style={tw`flex-1 py-2 rounded-xl items-center justify-center flex-row gap-1.5 ${
+                            item.status === "tidak_hadir"
+                              ? "bg-red-600 shadow-md"
+                              : "bg-slate-700/50 border border-slate-600/40"
+                          }`}
+                        >
+                          <Text
+                            style={tw`text-[11px] font-black text-white uppercase`}
+                          >
+                            ❌ Absen
+                          </Text>
+                        </TouchableOpacity>
+                      </>
+                    )}
+                  </View>
                 </View>
               </View>
             );

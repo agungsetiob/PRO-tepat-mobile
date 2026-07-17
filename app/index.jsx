@@ -190,7 +190,7 @@ export default function Home() {
 
       <TouchableOpacity
         onPress={() => router.push("/generator")}
-        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-6 flex-row items-center justify-between border border-teal-500/20`}
+        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
       >
         <View style={tw`flex-row items-center`}>
           <View style={tw`bg-purple-500/30 p-2 rounded-xl mr-3`}>
@@ -202,6 +202,26 @@ export default function Home() {
             </Text>
             <Text style={[tw`text-purple-300 text-[11px] mt-0.5`, { fontFamily: 'Montserrat-Regular' }]}>
               Buat Susunan Acara (PDF)
+            </Text>
+          </View>
+        </View>
+        <Text style={tw`text-white font-bold text-base`}>❯</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={() => router.push("/rundown-list")}
+        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
+      >
+        <View style={tw`flex-row items-center`}>
+          <View style={tw`bg-green-500/30 p-2 rounded-xl mr-3`}>
+            <DynamicIcon name="file-list" color="#55f78b" size={20} />
+          </View>
+          <View>
+            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Montserrat-Bold' }]}>
+              List Rundown
+            </Text>
+            <Text style={[tw`text-green-300 text-[11px] mt-0.5`, { fontFamily: 'Montserrat-Regular' }]}>
+              Rundown dan Presensi Forkopimda
             </Text>
           </View>
         </View>

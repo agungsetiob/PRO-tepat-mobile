@@ -32,6 +32,10 @@ export default function RundownGenerator() {
 
   const [masterAgendas, setMasterAgendas] = useState([]);
   const [rundownRows, setRundownRows] = useState([]);
+  
+  const [masterHonorifics, setMasterHonorifics] = useState([]);
+  const [selectedInvitations, setSelectedInvitations] = useState([]);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,12 +44,16 @@ export default function RundownGenerator() {
   const [activeRowSearchIndex, setActiveRowSearchIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [honorificModalVisible, setHonorificModalVisible] = useState(false);
+  const [activeHonorificSearchIndex, setActiveHonorificSearchIndex] = useState(null);
+  const [honorificSearchQuery, setHonorificSearchQuery] = useState("");
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
 
   useEffect(() => {
-    fetchMasterAgendas();
+    fetchInitialMasterData();
   }, []);
 
   const triggerAlert = (title, message) => {
@@ -54,15 +62,22 @@ export default function RundownGenerator() {
     setAlertVisible(true);
   };
 
-  const fetchMasterAgendas = async () => {
+  const fetchInitialMasterData = async () => {
     try {
-      const response = await api.get('/master-agendas');
-      if (response.data.success) {
-        setMasterAgendas(response.data.data || []);
+      const [agendaResponse, honorificResponse] = await Promise.all([
+        api.get('/master-agendas'),
+        api.get('/honorifics')
+      ]);
+
+      if (agendaResponse.data.success) {
+        setMasterAgendas(agendaResponse.data.data || []);
+      }
+      if (honorificResponse.data.success) {
+        setMasterHonorifics(honorificResponse.data.data || []);
       }
     } catch (error) {
-      console.error("Gagal memuat master agenda:", error);
-      triggerAlert("Error", "Gagal mengambil bank data uraian kegiatan dari server.");
+      console.error("Gagal memuat data master generator:", error);
+      triggerAlert("Error", "Gagal mengambil data master protokol dari server.");
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +104,23 @@ export default function RundownGenerator() {
     );
   };
 
+  const handleAddInvitationRow = () => {
+    setSelectedInvitations((prev) => [
+      ...prev,
+      { honorific_id: masterHonorifics[0]?.id || "" }
+    ]);
+  };
+
+  const handleRemoveInvitationRow = (index) => {
+    setSelectedInvitations((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateInvitationRow = (index, value) => {
+    setSelectedInvitations((prev) =>
+      prev.map((item, i) => (i === index ? { honorific_id: value } : item))
+    );
+  };
+
   const formatDateToString = (dateObj) => {
     if (!(dateObj instanceof Date)) return "";
     const year = dateObj.getFullYear();
@@ -99,6 +131,12 @@ export default function RundownGenerator() {
 
   const filteredAgendas = masterAgendas.filter((agenda) =>
     agenda.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredHonorifics = masterHonorifics.filter((hp) =>
+    (hp.jabatan || "").toLowerCase().includes(honorificSearchQuery.toLowerCase()) ||
+    (hp.sapaan_resmi || "").toLowerCase().includes(honorificSearchQuery.toLowerCase()) ||
+    (hp.sapaan_lisan || "").toLowerCase().includes(honorificSearchQuery.toLowerCase())
   );
 
   const openSearchModal = (rowIndex) => {
@@ -115,9 +153,23 @@ export default function RundownGenerator() {
     setActiveRowSearchIndex(null);
   };
 
+  const openHonorificSearchModal = (rowIndex) => {
+    setActiveHonorificSearchIndex(rowIndex);
+    setHonorificSearchQuery("");
+    setHonorificModalVisible(true);
+  };
+
+  const selectHonorificFromSearch = (honorificId) => {
+    if (activeHonorificSearchIndex !== null) {
+      handleUpdateInvitationRow(activeHonorificSearchIndex, honorificId);
+    }
+    setHonorificModalVisible(false);
+    setActiveHonorificSearchIndex(null);
+  };
+
   const handleSubmit = async () => {
-    if (!eventName || !location || rundownRows.length === 0) {
-      triggerAlert("Peringatan", "Mohon lengkapi data acara dan isi minimal 1 baris susunan!");
+    if (!eventName || !location || rundownRows.length === 0 || selectedInvitations.length === 0) {
+      triggerAlert("Peringatan", "Mohon lengkapi data acara, isi minimal 1 baris susunan, dan 1 orang undangan resmi!");
       return;
     }
 
@@ -130,6 +182,7 @@ export default function RundownGenerator() {
         location: location,
         pic: pic,
         items: rundownRows,
+        invitations: selectedInvitations,
       };
 
       const response = await api.post('/rundowns', payload);
@@ -157,20 +210,16 @@ export default function RundownGenerator() {
             <style>
               @page { size: A4; margin: 20mm 15mm; }
               body { font-family: 'Arial', sans-serif; color: #1e293b; margin: 0; padding: 0; font-size: 10pt; line-height: 1.5; }
-              
               .brand-container { text-align: center; margin-bottom: 5px; }
               .gov-logo { width: 70px; height: auto; display: inline-block; }
-              
               .header-text-group { text-align: center; margin-bottom: 25px; }
               .doc-title { font-size: 13pt; font-weight: 800; text-transform: uppercase; color: #0f172a; margin: 4px 0; letter-spacing: 0.5px; }
               .gov-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; color: #475569; margin: 2px 0; }
-              
               .meta-info { width: 100%; margin-bottom: 20px; font-size: 10pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 15px; }
               .meta-info td { padding: 4px 0; vertical-align: top; }
               .meta-label { width: 18%; font-weight: bold; color: #334155; }
               .meta-spacer { width: 2%; color: #334155; }
               .meta-value { width: 80%; color: #0f172a; }
-              
               table.content-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
               table.content-table th { background-color: #7497e9; color: white; font-weight: bold; text-transform: uppercase; font-size: 8.5pt; padding: 10px; border: 1px solid #475569; }
               table.content-table td { padding: 10px; border: 1px solid #475569; vertical-align: middle; font-size: 9.5pt; }
@@ -178,24 +227,20 @@ export default function RundownGenerator() {
             </style>
           </head>
           <body>
-            
             <div class="brand-container">
               <img class="gov-logo" src="https://protap.tanahbumbukab.go.id/logo-tanbu.png" alt="Logo Kabupaten" />
             </div>
-
             <div class="header-text-group">
               <div class="doc-title">RUNDOWN ACARA</div>
               <div class="doc-title">${savedRundown.event_name}</div>
               <div class="gov-title">KABUPATEN TANAH BUMBU</div>
             </div>
-
             <table class="meta-info">
               <tr><td class="meta-label">Hari, Tgl</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.date}</td></tr>
               <tr><td class="meta-label">Waktu</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.time_info}</td></tr>
               <tr><td class="meta-label">Tempat</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.location}</td></tr>
               <tr><td class="meta-label">Pelaksana / PJ</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.pic || '-'}</td></tr>
             </table>
-
             <table class="content-table">
               <thead>
                 <tr>
@@ -223,6 +268,7 @@ export default function RundownGenerator() {
       triggerAlert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
     } finally {
       setRundownRows([]);
+      setSelectedInvitations([]);
       setIsSubmitting(false);
     }
   };
@@ -259,10 +305,11 @@ export default function RundownGenerator() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={tw`flex-1`}
       >
+        {/* DATA UTAMA DIGABUNG DI DATA FLATLIST RUNDOWNROWS */}
         <FlatList
           data={rundownRows}
           keyExtractor={(_, index) => "generator-row-" + index}
-          contentContainerStyle={tw`px-5 pt-4 pb-28`}
+          contentContainerStyle={tw`px-5 pt-4 pb-36`}
           showsVerticalScrollIndicator={false}
           
           ListHeaderComponent={
@@ -313,7 +360,7 @@ export default function RundownGenerator() {
                 onChangeText={setLocation}
                 placeholder="Contoh: Kantor Bupati"
                 placeholderTextColor="#64748b"
-                style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-5`}
+                style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-3.5`}
               />
 
               <Text style={tw`text-slate-400 text-xs font-bold mb-1.5 uppercase`}>Pelaksana</Text>
@@ -325,9 +372,56 @@ export default function RundownGenerator() {
                 style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-5`}
               />
 
-              <View style={tw`flex-row justify-between items-center border-t border-slate-800 pt-4 mb-2`}>
+              {/* ➕ FORMS DINAMIS 2: SUB-HEADER SEKSI DAFTAR UNDANGAN PEJABAT */}
+              <View style={tw`flex-row justify-between items-center border-t border-slate-800 pt-4 mb-3.5`}>
                 <Text style={tw`text-slate-300 text-xs font-bold uppercase tracking-wider`}>
-                  ⚡ Susunan Acara ({rundownRows.length})
+                  👥 Daftar Undangan Pejabat ({selectedInvitations.length})
+                </Text>
+                <TouchableOpacity
+                  onPress={handleAddInvitationRow}
+                  style={tw`bg-indigo-600 px-3 py-1.5 rounded-lg`}
+                >
+                  <Text style={tw`text-white text-xs font-bold`}>➕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Loop Rendering list undangan lokal didalam header container */}
+              {selectedInvitations.map((invItem, invIndex) => {
+                const selectedPejabat = masterHonorifics.find((h) => h.id === invItem.honorific_id);
+                return (
+                  <View key={"invitation-row-" + invIndex} style={tw`bg-slate-800/40 border border-slate-700/80 p-3 rounded-2xl mb-2.5 flex-row items-center gap-2`}>
+                    <View style={tw`flex-1`}>
+                      <Text style={tw`text-slate-400 text-[9px] font-black tracking-widest uppercase mb-1`}>URUTAN SAPAAN #{invIndex + 1}</Text>
+                      <TouchableOpacity
+                        onPress={() => openHonorificSearchModal(invIndex)}
+                        style={tw`bg-slate-800 border border-slate-700 rounded-xl p-2.5 flex-row justify-between items-center`}
+                      >
+                        <Text style={tw`text-xs ${selectedPejabat ? "text-white font-bold" : "text-slate-400"} flex-1`} numberOfLines={1}>
+                          {selectedPejabat ? `${selectedPejabat.jabatan} (${selectedPejabat.sapaan_resmi || '-'})` : "Pilih Undangan Pejabat..."}
+                        </Text>
+                        <Text style={tw`text-slate-400 text-[10px] ml-2`}>▼</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity 
+                      onPress={() => handleRemoveInvitationRow(invIndex)}
+                      style={tw`bg-red-500/10 border border-red-500/20 p-2.5 rounded-xl self-end`}
+                    >
+                      <Text style={tw`text-red-400 text-xs font-bold`}>Hapus</Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+
+              {selectedInvitations.length === 0 && (
+                <Text style={tw`text-slate-500 text-xs italic text-center py-4 mb-3 border border-dashed border-slate-800 rounded-xl`}>
+                  Belum ada daftar pejabat ditambahkan. Tekan "+" di atas.
+                </Text>
+              )}
+
+              {/* SEKSI BARIS ACARA RUNDOWN */}
+              <View style={tw`flex-row justify-between items-center border-t border-slate-800 pt-4 mb-3`}>
+                <Text style={tw`text-slate-300 text-xs font-bold uppercase tracking-wider`}>
+                  ⚡ Susunan Acara / Rundown ({rundownRows.length})
                 </Text>
                 <TouchableOpacity
                   onPress={handleAddRow}
@@ -402,7 +496,7 @@ export default function RundownGenerator() {
           
           ListEmptyComponent={
             <Text style={tw`text-slate-500 text-xs italic text-center py-8`}>
-              Belum ada susunan acara. Tekan tombol ➕ di atas untuk menambah susunan.
+              Belum ada susunan acara. Tekan tombol "+" di atas untuk menambah susunan.
             </Text>
           }
         />
@@ -472,6 +566,55 @@ export default function RundownGenerator() {
         </View>
       </Modal>
 
+      {/* ➕ MODAL SEARCHABLE SELECTOR BARU UNTUK LIST HONORIFICS Tamu / Pejabat */}
+      <Modal
+        visible={honorificModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setHonorificModalVisible(false)}
+      >
+        <View style={tw`flex-1 bg-black/70 justify-end`}>
+          <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
+            <View style={tw`flex-row justify-between items-center mb-4`}>
+              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari Jabatan / Nama Undangan</Text>
+              <TouchableOpacity onPress={() => setHonorificModalVisible(false)} style={tw`bg-slate-700 p-1 rounded-full px-2`}>
+                <Text style={tw`text-white font-bold`}>X</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TextInput
+              value={honorificSearchQuery}
+              onChangeText={setHonorificSearchQuery}
+              placeholder="Ketik jabatan Pejabat (Bupati, Ketua DPRD...)..."
+              placeholderTextColor="#64748b"
+              autoFocus={true}
+              style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-4`}
+            />
+
+            <FlatList
+              data={filteredHonorifics}
+              keyExtractor={(item) => "search-honorific-" + item.id}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => selectHonorificFromSearch(item.id)}
+                  style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}
+                >
+                  <Text style={tw`text-white text-xs font-bold`}>{item.jabatan}</Text>
+                    {item.sapaan_resmi && <Text style={tw`text-slate-400 text-[11px] mt-0.5`}>{item.sapaan_resmi}</Text>}
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <View style={tw`py-10 items-center`}>
+                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada data jabatan/undangan ditemukan.</Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* GLOBAL POPUP ALERT CONTAINER */}
       <Modal
         visible={alertVisible}
         animationType="fade"
@@ -480,7 +623,6 @@ export default function RundownGenerator() {
       >
         <View style={tw`flex-1 bg-black/60 justify-center items-center px-6`}>
           <View style={tw`bg-slate-900 border border-slate-800 w-full max-w-xs rounded-2xl overflow-hidden shadow-2xl`}>
-            {/* Konten Teks */}
             <View style={tw`p-5 items-center`}>
               <Text style={tw`text-white text-base font-black uppercase tracking-wide text-center mb-2`}>
                 {alertTitle}
@@ -489,10 +631,7 @@ export default function RundownGenerator() {
                 {alertMessage}
               </Text>
             </View>
-            
-            {/* Divider Garis Horisontal */}
             <View style={tw`h-[1px] bg-slate-800 w-full`} />
-
             <TouchableOpacity
               onPress={() => setAlertVisible(false)}
               activeOpacity={0.8}

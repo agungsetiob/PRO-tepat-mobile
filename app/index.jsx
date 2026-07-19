@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as LucideIcons from "lucide-react-native";
 import api, { STORAGE_BASE_URL } from "./api/api";
 import PinGateModal from "./components/PinGateModal";
+import { PinSession } from "../utils/session";
 
 const { width } = Dimensions.get("window");
 
@@ -47,9 +48,20 @@ export default function Home() {
   const [pinModalVisible, setPinModalVisible] = useState(false);
   const [targetRoute, setTargetRoute] = useState("");
 
+  // const handleProtectedNavigation = (routePath) => {
+  //   setTargetRoute(routePath);
+  //   setPinModalVisible(true);
+  // };
+
   const handleProtectedNavigation = (routePath) => {
-    setTargetRoute(routePath);
-    setPinModalVisible(true);
+    // 2. CEK FAST-PASS: Jika sudah terverifikasi di sesi ini, langsung pindah!
+    if (PinSession.isVerified) {
+      router.push(routePath);
+    } else {
+      // Jika belum terverifikasi (atau app baru dibuka), baru tampilkan modal
+      setTargetRoute(routePath);
+      setPinModalVisible(true);
+    }
   };
 
 
@@ -416,8 +428,10 @@ export default function Home() {
         visible={pinModalVisible}
         onClose={() => setPinModalVisible(false)}
         onAuthSuccess={() => {
-          setPinModalVisible(false);
           router.push(targetRoute);
+          setTimeout(() => {
+            setPinModalVisible(false);
+          }, 400); 
         }}
       />
     </>

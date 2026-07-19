@@ -19,6 +19,7 @@ import api from "./api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
+import PinGateModal from "./components/PinGateModal";
 
 export default function RundownGenerator() {
   const router = useRouter();
@@ -51,6 +52,9 @@ export default function RundownGenerator() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
+
+  const [pinModalVisible, setPinModalVisible] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
 
   useEffect(() => {
     fetchInitialMasterData();
@@ -86,11 +90,7 @@ export default function RundownGenerator() {
   const handleAddRow = () => {
     setRundownRows((prev) => [
       ...prev,
-      {
-        master_agenda_id: masterAgendas[0]?.id || "",
-        start_time: "08.00",
-        end_time: "08.10",
-      },
+      { master_agenda_id: masterAgendas[0]?.id || "", start_time: "08.00", end_time: "08.10" },
     ]);
   };
 
@@ -99,16 +99,11 @@ export default function RundownGenerator() {
   };
 
   const handleUpdateRow = (index, field, value) => {
-    setRundownRows((prev) =>
-      prev.map((row, i) => (i === index ? { ...row, [field]: value } : row))
-    );
+    setRundownRows((prev) => prev.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
   };
 
   const handleAddInvitationRow = () => {
-    setSelectedInvitations((prev) => [
-      ...prev,
-      { honorific_id: masterHonorifics[0]?.id || "" }
-    ]);
+    setSelectedInvitations((prev) => [...prev, { honorific_id: masterHonorifics[0]?.id || "" }]);
   };
 
   const handleRemoveInvitationRow = (index) => {
@@ -116,9 +111,7 @@ export default function RundownGenerator() {
   };
 
   const handleUpdateInvitationRow = (index, value) => {
-    setSelectedInvitations((prev) =>
-      prev.map((item, i) => (i === index ? { honorific_id: value } : item))
-    );
+    setSelectedInvitations((prev) => prev.map((item, i) => (i === index ? { honorific_id: value } : item)));
   };
 
   const formatDateToString = (dateObj) => {
@@ -169,10 +162,13 @@ export default function RundownGenerator() {
 
   const handleSubmit = async () => {
     if (!eventName || !location || rundownRows.length === 0 || selectedInvitations.length === 0) {
-      triggerAlert("Peringatan", "Mohon lengkapi data acara, isi minimal 1 baris susunan, dan 1 orang undangan resmi!");
+      triggerAlert("Peringatan", "Mohon lengkapi data acara, isi minimal 1 baris susunan, dan 1 orang undangan");
       return;
     }
+    executeSubmit();
+  };
 
+  const executeSubmit = async () => {
     setIsSubmitting(true);
     try {
       const payload = {
@@ -191,16 +187,13 @@ export default function RundownGenerator() {
         const savedRundown = response.data.data;
 
         const tableRowsHtml = savedRundown.items
-          .map(
-            (item, index) => `
-          <tr>
-            <td style="text-align: center; font-weight: bold; color: #475569;">${index + 1}</td>
-            <td style="font-weight: bold; color: #0d9488; text-align: center;">${item.start_time} - ${item.end_time}</td>
-            <td>${item.master_agenda ? item.master_agenda.name : "-"}</td>
-          </tr>
-        `
-          )
-          .join("");
+          .map((item, index) => `
+            <tr>
+              <td style="text-align: center; font-weight: bold; color: #475569;">${index + 1}</td>
+              <td style="font-weight: bold; color: #0d9488; text-align: center;">${item.start_time} - ${item.end_time}</td>
+              <td>${item.master_agenda ? item.master_agenda.name : "-"}</td>
+            </tr>
+          `).join("");
 
         const htmlContent = `
           <!DOCTYPE html>
@@ -260,16 +253,23 @@ export default function RundownGenerator() {
           MIMEType: "application/pdf",
           dialogTitle: "Cetak Rundown Acara",
         });
+        
+        setRundownRows([]);
+        setSelectedInvitations([]);
+        setIsSubmitting(false);
 
         router.push("/");
       }
     } catch (error) {
-      console.error("Gagal generate rundown & PDF:", error);
-      triggerAlert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
-    } finally {
-      setRundownRows([]);
-      setSelectedInvitations([]);
-      setIsSubmitting(false);
+      if (error.response && error.response.status === 401) {
+        setIsSubmitting(false);
+        setPendingAction('submit');
+        setPinModalVisible(true);
+      } else {
+        console.error("Gagal generate rundown & PDF:", error);
+        triggerAlert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -284,7 +284,6 @@ export default function RundownGenerator() {
 
   return (
     <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={["bottom", "left", "right"]}>
-      {/* HEADER GRADIEN */}
       <LinearGradient
         colors={['#3bd9e8', '#9359e9']}
         start={{ x: 0, y: 0 }}
@@ -305,15 +304,14 @@ export default function RundownGenerator() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={tw`flex-1`}
       >
-        {/* DATA UTAMA DIGABUNG DI DATA FLATLIST RUNDOWNROWS */}
         <FlatList
           data={rundownRows}
           keyExtractor={(_, index) => "generator-row-" + index}
           contentContainerStyle={tw`px-5 pt-4 pb-36`}
           showsVerticalScrollIndicator={false}
-          
           ListHeaderComponent={
             <View>
+              {/* ... (Semua UI Input Header dan Undangan persis sama tidak ada yang diubah) ... */}
               <Text style={tw`text-slate-400 text-xs font-bold mb-1.5 uppercase`}>Nama Acara</Text>
               <TextInput
                 value={eventName}
@@ -372,7 +370,6 @@ export default function RundownGenerator() {
                 style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-5`}
               />
 
-              {/* ➕ FORMS DINAMIS 2: SUB-HEADER SEKSI DAFTAR UNDANGAN PEJABAT */}
               <View style={tw`flex-row justify-between items-center border-t border-slate-800 pt-4 mb-3.5`}>
                 <Text style={tw`text-slate-300 text-xs font-bold uppercase tracking-wider`}>
                   👥 Daftar Undangan Pejabat ({selectedInvitations.length})
@@ -385,7 +382,6 @@ export default function RundownGenerator() {
                 </TouchableOpacity>
               </View>
 
-              {/* Loop Rendering list undangan lokal didalam header container */}
               {selectedInvitations.map((invItem, invIndex) => {
                 const selectedPejabat = masterHonorifics.find((h) => h.id === invItem.honorific_id);
                 return (
@@ -418,7 +414,6 @@ export default function RundownGenerator() {
                 </Text>
               )}
 
-              {/* SEKSI BARIS ACARA RUNDOWN */}
               <View style={tw`flex-row justify-between items-center border-t border-slate-800 pt-4 mb-3`}>
                 <Text style={tw`text-slate-300 text-xs font-bold uppercase tracking-wider`}>
                   ⚡ Susunan Acara / Rundown ({rundownRows.length})
@@ -502,7 +497,6 @@ export default function RundownGenerator() {
         />
       </KeyboardAvoidingView>
 
-      {/* Tombol Submit Mengambang */}
       <View style={tw`absolute bottom-4 left-5 right-5 bg-[#0d1731] pt-2`}>
         <TouchableOpacity
           onPress={handleSubmit}
@@ -519,13 +513,8 @@ export default function RundownGenerator() {
         </TouchableOpacity>
       </View>
 
-      {/* MODAL SEARCHABLE SELECTOR FOR MASTER AGENDAS */}
-      <Modal
-        visible={searchModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setSearchModalVisible(false)}
-      >
+      {/* ... (Modal Pencarian Agenda & Pejabat tetap sama persis) ... */}
+      <Modal visible={searchModalVisible} animationType="slide" transparent={true} onRequestClose={() => setSearchModalVisible(false)}>
         <View style={tw`flex-1 bg-black/70 justify-end`}>
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
@@ -549,30 +538,19 @@ export default function RundownGenerator() {
               keyExtractor={(item) => "search-agenda-" + item.id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => selectAgendaFromSearch(item.id)}
-                  style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}
-                >
+                <TouchableOpacity onPress={() => selectAgendaFromSearch(item.id)} style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}>
                   <Text style={tw`text-white text-xs`}>{item.name}</Text>
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <View style={tw`py-10 items-center`}>
-                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada acara/agenda.</Text>
-                </View>
+                <View style={tw`py-10 items-center`}><Text style={tw`text-slate-500 text-xs italic`}>Tidak ada acara/agenda.</Text></View>
               }
             />
           </View>
         </View>
       </Modal>
 
-      {/* ➕ MODAL SEARCHABLE SELECTOR BARU UNTUK LIST HONORIFICS Tamu / Pejabat */}
-      <Modal
-        visible={honorificModalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setHonorificModalVisible(false)}
-      >
+      <Modal visible={honorificModalVisible} animationType="slide" transparent={true} onRequestClose={() => setHonorificModalVisible(false)}>
         <View style={tw`flex-1 bg-black/70 justify-end`}>
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
             <View style={tw`flex-row justify-between items-center mb-4`}>
@@ -585,7 +563,7 @@ export default function RundownGenerator() {
             <TextInput
               value={honorificSearchQuery}
               onChangeText={setHonorificSearchQuery}
-              placeholder="Ketik jabatan Pejabat (Bupati, Ketua DPRD...)..."
+              placeholder="Ketik jabatan Pejabat..."
               placeholderTextColor="#64748b"
               autoFocus={true}
               style={tw`bg-slate-800 border border-slate-700 text-white rounded-xl p-3 text-sm mb-4`}
@@ -596,52 +574,48 @@ export default function RundownGenerator() {
               keyExtractor={(item) => "search-honorific-" + item.id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => selectHonorificFromSearch(item.id)}
-                  style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}
-                >
+                <TouchableOpacity onPress={() => selectHonorificFromSearch(item.id)} style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}>
                   <Text style={tw`text-white text-xs font-bold`}>{item.jabatan}</Text>
                     {item.sapaan_resmi && <Text style={tw`text-slate-400 text-[11px] mt-0.5`}>{item.sapaan_resmi}</Text>}
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
-                <View style={tw`py-10 items-center`}>
-                  <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada data jabatan/undangan ditemukan.</Text>
-                </View>
+                <View style={tw`py-10 items-center`}><Text style={tw`text-slate-500 text-xs italic`}>Tidak ada data jabatan/undangan ditemukan.</Text></View>
               }
             />
           </View>
         </View>
       </Modal>
 
-      {/* GLOBAL POPUP ALERT CONTAINER */}
-      <Modal
-        visible={alertVisible}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setAlertVisible(false)}
-      >
+      <Modal visible={alertVisible} animationType="fade" transparent={true} onRequestClose={() => setAlertVisible(false)}>
         <View style={tw`flex-1 bg-black/60 justify-center items-center px-6`}>
           <View style={tw`bg-slate-900 border border-slate-800 w-full max-w-xs rounded-2xl overflow-hidden shadow-2xl`}>
             <View style={tw`p-5 items-center`}>
-              <Text style={tw`text-white text-base font-black uppercase tracking-wide text-center mb-2`}>
-                {alertTitle}
-              </Text>
-              <Text style={tw`text-slate-300 text-xs text-center leading-relaxed font-medium`}>
-                {alertMessage}
-              </Text>
+              <Text style={tw`text-white text-base font-black uppercase tracking-wide text-center mb-2`}>{alertTitle}</Text>
+              <Text style={tw`text-slate-300 text-xs text-center leading-relaxed font-medium`}>{alertMessage}</Text>
             </View>
             <View style={tw`h-[1px] bg-slate-800 w-full`} />
-            <TouchableOpacity
-              onPress={() => setAlertVisible(false)}
-              activeOpacity={0.8}
-              style={tw`w-full py-3.5 items-center justify-center bg-slate-800/40`}
-            >
+            <TouchableOpacity onPress={() => setAlertVisible(false)} activeOpacity={0.8} style={tw`w-full py-3.5 items-center justify-center bg-slate-800/40`}>
               <Text style={tw`text-teal-400 font-bold text-sm tracking-wider`}>Mengerti</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
+
+      <PinGateModal
+        visible={pinModalVisible}
+        onClose={() => {
+          setPinModalVisible(false);
+          setPendingAction(null);
+        }}
+        onAuthSuccess={() => {
+          setPinModalVisible(false);
+          if (pendingAction === 'submit') {
+            executeSubmit();
+            setPendingAction(null);
+          }
+        }}
+      />
 
     </SafeAreaView>
   );

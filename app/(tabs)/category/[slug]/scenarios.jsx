@@ -9,10 +9,10 @@ import {
   Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import api, { STORAGE_BASE_URL } from "./../../api/api";
+import api, { STORAGE_BASE_URL } from "../../../../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
-import { Search } from "lucide-react-native";
+import { Search, ArrowLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -80,10 +80,7 @@ export default function CategoryScenarios() {
     if (!isLoadingMore) return <View style={tw`h-10`} />;
     return (
       <View style={tw`py-4 items-center`}>
-        <ActivityIndicator size="small" color="#6b46c1" />
-        <Text style={tw`text-[10px] text-slate-400 mt-1`}>
-          Memuat data lama...
-        </Text>
+        <ActivityIndicator size="large" color="#22a594" />
       </View>
     );
   };
@@ -95,19 +92,14 @@ export default function CategoryScenarios() {
         style={tw`bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-sm mb-3 flex-row items-center`}
         activeOpacity={0.7}
       >
-        {item.thumbnail ? (
-          <Image
-            source={{ uri: `${STORAGE_BASE_URL}${item.thumbnail}` }}
-            style={tw`w-14 h-14 rounded-xl bg-slate-700 mr-4`}
-            resizeMode="cover"
-          />
-        ) : (
-          <View
-            style={tw`bg-teal-500/20 w-14 h-14 rounded-xl items-center justify-center mr-4`}
-          >
-            <Text style={tw`text-xl`}>📄</Text>
-          </View>
-        )}
+        <Image
+          source={
+            item.thumbnail
+              ? { uri: `${STORAGE_BASE_URL}${item.thumbnail}` }
+              : require("../../../../assets/icon-protap.png")
+          }
+          style={tw`w-14 h-14 rounded-xl bg-slate-700 mr-3`}
+        />
 
         <View style={tw`flex-1`}>
           <Text style={tw`text-sm font-extrabold text-white mb-0.5`}>
@@ -151,7 +143,7 @@ export default function CategoryScenarios() {
   return (
     <SafeAreaView
       style={tw`flex-1 bg-[#0d1731]`}
-      edges={['bottom', 'left', 'right']}
+      edges={['left', 'right']}
     >
       <StatusBar barStyle="light-content" />
 
@@ -163,8 +155,8 @@ export default function CategoryScenarios() {
         style={tw`p-5 pt-12 rounded-b-3xl`}
       >
         <View style={tw`flex-row items-center mb-4`}>
-          <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+          <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
           <View style={tw`flex-1`}>
             <Text

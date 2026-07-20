@@ -15,11 +15,11 @@ import { useRouter } from "expo-router";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import api from "./api/api";
+import api from "../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
-import PinGateModal from "./components/PinGateModal";
+import PinGateModal from "../components/PinGateModal";
 
 export default function RundownGenerator() {
   const router = useRouter();

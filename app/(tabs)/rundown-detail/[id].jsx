@@ -12,12 +12,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../api/api";
+import api from "../../../api/api";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
-
-import PinGateModal from "../components/PinGateModal";
+import { ArrowLeft } from "lucide-react-native";
+import PinGateModal from "../../../components/PinGateModal";
 
 const { STORAGE_BASE_URL } = Constants.expoConfig.extra;
 
@@ -163,7 +163,7 @@ export default function RundownDetail() {
       <LinearGradient colors={["#3bd9e8", "#9359e9"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={tw`px-5 pt-8 pb-4 rounded-b-3xl shadow-md`}>
         <View style={tw`flex-row items-center mb-3`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
           <Text style={tw`text-white text-base font-black uppercase flex-1`} numberOfLines={1}>
             {rundownData.event_name}

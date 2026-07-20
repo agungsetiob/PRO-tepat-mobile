@@ -35,8 +35,8 @@
       "expo-font"
     ],
     "extra": {
-      "API_BASE_URL": "http://192.168.1.10:8000/api/v1",
-      "STORAGE_BASE_URL": "http://192.168.1.10:8000/storage/",
+      "API_BASE_URL": "http://10.10.23.192:8000/api/v1",
+      "STORAGE_BASE_URL": "http://10.10.23.192:8000/storage/",
       "router": {},
       "eas": {
         "projectId": "fe1e42f3-b2b7-436b-a336-ff9bf392321f"

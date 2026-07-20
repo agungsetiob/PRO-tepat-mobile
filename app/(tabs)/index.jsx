@@ -12,15 +12,15 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import tw from "twrnc";
-import Constants from "expo-constants";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LucideIcons from "lucide-react-native";
-import api, { STORAGE_BASE_URL } from "./api/api";
-import PinGateModal from "./components/PinGateModal";
-import { PinSession } from "../utils/session";
+import api, { STORAGE_BASE_URL } from "../../api/api";
+import PinGateModal from "../../components/PinGateModal";
+import { PinSession, AppSession } from "../../utils/session";
+import { Tabs } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -38,6 +38,7 @@ const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
 
 export default function Home() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [fontsLoaded] = useFonts({
     'Montserrat-Regular': Montserrat_400Regular,
@@ -48,22 +49,14 @@ export default function Home() {
   const [pinModalVisible, setPinModalVisible] = useState(false);
   const [targetRoute, setTargetRoute] = useState("");
 
-  // const handleProtectedNavigation = (routePath) => {
-  //   setTargetRoute(routePath);
-  //   setPinModalVisible(true);
-  // };
-
   const handleProtectedNavigation = (routePath) => {
-    // 2. CEK FAST-PASS: Jika sudah terverifikasi di sesi ini, langsung pindah!
     if (PinSession.isVerified) {
       router.push(routePath);
     } else {
-      // Jika belum terverifikasi (atau app baru dibuka), baru tampilkan modal
       setTargetRoute(routePath);
       setPinModalVisible(true);
     }
   };
-
 
   const [categories, setCategories] = useState([]);
   const [scenarios, setScenarios] = useState([]);
@@ -72,25 +65,16 @@ export default function Home() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(!AppSession.hasShownSplash);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Animasi Ref
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        useNativeDriver: true,
-      }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+      Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
 
     initApp();
@@ -113,6 +97,7 @@ export default function Home() {
       setTimeout(() => {
         setShowSplash(false);
         setIsLoading(false);
+        AppSession.hasShownSplash = true;
       }, 1500);
     } catch (error) {
       console.error("Gagal memuat data:", error);
@@ -180,35 +165,14 @@ export default function Home() {
       );
     }
     return (
-      <View style={tw`mt-6 mb-12 items-center`}>
-        <Text style={[tw`text-[10px] text-slate-400`, { fontFamily: 'Montserrat-Regular' }]}>PROTAP v1.1</Text>
+      <View style={tw`mt-6 mb-8 items-center`}>
+        <Text style={[tw`text-[10px] text-slate-500`, { fontFamily: 'Montserrat-Regular' }]}>PROTAP v1.1.0</Text>
       </View>
     );
   };
 
-  // ===================== RENDER COMPONENT HEADER =====================
   const renderHeader = () => (
     <View style={tw`pt-6`}>
-      <TouchableOpacity
-        onPress={() => router.push("/honorifics")}
-        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
-      >
-        <View style={tw`flex-row items-center`}>
-          <View style={tw`bg-teal-500/40 p-2 rounded-xl mr-3`}>
-            <DynamicIcon name="crown" color="#ffffff" size={20} />
-          </View>
-          <View>
-            <Text style={[tw`text-white text-xs uppercase tracking-wider`, { fontFamily: 'Montserrat-Bold' }]}>
-              Panduan Digital Protokol
-            </Text>
-            <Text style={[tw`text-teal-200 text-[11px] mt-0.5`, { fontFamily: 'Montserrat-Regular' }]}>
-              Sapaan Resmi & Lisan Pejabat
-            </Text>
-          </View>
-        </View>
-        <Text style={tw`text-white font-bold text-base`}>❯</Text>
-      </TouchableOpacity>
-
       <TouchableOpacity
         onPress={() => handleProtectedNavigation("/generator")}
         style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
@@ -231,7 +195,7 @@ export default function Home() {
 
       <TouchableOpacity
         onPress={() => router.push("/rundown-list")}
-        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
+        style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-6 flex-row items-center justify-between`}
       >
         <View style={tw`flex-row items-center`}>
           <View style={tw`bg-green-500/30 p-2 rounded-xl mr-3`}>
@@ -249,6 +213,7 @@ export default function Home() {
         <Text style={tw`text-white font-bold text-base`}>❯</Text>
       </TouchableOpacity>
 
+      {/* Area Grid Kategori dan Manual Book */}
       <View style={tw`flex-row flex-wrap gap-3 mb-6`}>
         {categories.map((cat) => (
           <TouchableOpacity
@@ -264,6 +229,8 @@ export default function Home() {
             </Text>
           </TouchableOpacity>
         ))}
+        
+        {/* Manual Book Dikembalikan ke Sini */}
         <TouchableOpacity
           key="manuals"
           onPress={() => router.push(`/manuals`)}
@@ -293,7 +260,7 @@ export default function Home() {
         source={
           item.thumbnail
             ? { uri: `${STORAGE_BASE_URL}${item.thumbnail}` }
-            : require("../assets/icon-protap.png")
+            : require("../../assets/icon-protap.png")
         }
         style={tw`w-12 h-12 rounded-xl bg-slate-700 mr-3`}
       />
@@ -309,121 +276,68 @@ export default function Home() {
     </TouchableOpacity>
   );
 
-  // ===================== RENDER SPLASH SCREEN =====================
   if (showSplash) {
     return (
       <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: "#0d1731" }]}>
+        <Tabs.Screen options={{ tabBarStyle: { display: 'none' } }} />
         <StatusBar barStyle="light-content" />
         <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ scale: scaleAnim }],
-            alignItems: "center",
-            justifyContent: "center",
-            width: '100%',
-          }}
+          style={{ opacity: fadeAnim, transform: [{ scale: scaleAnim }], alignItems: "center", justifyContent: "center", width: '100%' }}
         >
           <View style={tw`items-center justify-center`}>
-            <Image
-              source={require("../assets/icon-protap.png")}
-              style={{ width: width * 0.3, height: 115 }}
-              resizeMode="contain"
-            />
-
-            <Text style={[tw`text-white text-4xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>
-              PROTAP
-            </Text>
-
-
-            <Image
-              source={require("../assets/protokoler.png")}
-              style={{ width: width * 1.85, height: 410, marginTop: -75 }}
-              resizeMode="contain"
-            />
-
+            <Image source={require("../../assets/icon-protap.png")} style={{ width: width * 0.3, height: 115 }} resizeMode="contain" />
+            <Text style={[tw`text-white text-4xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>PROTAP</Text>
+            <Image source={require("../../assets/protokoler.png")} style={{ width: width * 1.85, height: 410, marginTop: -75 }} resizeMode="contain" />
             <View style={tw`-mt-28 items-center`}>
-              <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>
-                Panduan Resmi Operasional Tata Acara Protokol
-              </Text>
+              <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>Panduan Resmi Operasional Tata Acara Protokol</Text>
             </View>
           </View>
         </Animated.View>
-
         <View style={tw`absolute bottom-12 items-center`}>
           <ActivityIndicator color="#22a594" size="large" />
-          <Text style={[tw`text-white text-[12px] mt-4 uppercase tracking-widest`, { fontFamily: 'Montserrat-Bold' }]}>
-            Kabupaten Tanah Bumbu
-          </Text>
+          <Text style={[tw`text-white text-[12px] mt-4 uppercase tracking-widest`, { fontFamily: 'Montserrat-Bold' }]}>Kabupaten Tanah Bumbu</Text>
         </View>
       </View>
     );
   }
 
-  // ===================== RENDER DASHBOARD UTAMA =====================
   return (
-    <>
+    <View style={tw`flex-1 bg-[#0d1731]`}>
+      <Tabs.Screen options={{ tabBarStyle: { display: 'flex' } }} />
       <StatusBar barStyle="light-content" backgroundColor="#3bd9e8" translucent={false} />
-      <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={['bottom', 'left', 'right']}>
+      
+      <View style={tw`flex-1`}>
         <LinearGradient
           colors={['#3bd9e8', '#9359e9']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={tw`p-5 pt-12 rounded-b-3xl`}>
+          style={tw`p-5 pt-12 pb-6 rounded-b-3xl shadow-lg`}>
           <View style={tw`flex-row items-center justify-between`}>
             <View style={tw`flex-row items-center`}>
-              <Image
-                source={require('../assets/icon-protap.png')}
-                style={tw`w-7 h-7 -mr-1`}
-                resizeMode="contain"
-              />
-              <Text style={[tw`text-white text-2xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>
-                ROTAP
-              </Text>
+              <Image source={require('../../assets/icon-protap.png')} style={tw`w-7 h-7 -mr-1`} resizeMode="contain" />
+              <Text style={[tw`text-white text-2xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>ROTAP</Text>
             </View>
-
-            <Image
-              source={require('../assets/beraksi-logo.png')}
-              style={tw`h-16 w-28`}
-              resizeMode="contain"
-            />
+            <Image source={require('../../assets/beraksi-logo.png')} style={tw`h-16 w-28`} resizeMode="contain" />
           </View>
-
           <Text style={[tw`text-teal-200 text-sm tracking-wider uppercase`, { fontFamily: 'Montserrat-Bold' }]}>
             Kabupaten Tanah Bumbu
           </Text>
-
-          <TouchableOpacity
-            onPress={() => router.push("/search")}
-            activeOpacity={0.9}
-            style={tw`flex-row items-center bg-white/15 rounded-full px-4 py-2.5 shadow-md mt-4 border border-white/30`}
-          >
-            <DynamicIcon name="search" color="#ffffff" size={18} />
-            <Text style={[tw`text-white/90 text-sm flex-1 ml-2`, { fontFamily: 'Montserrat-Regular' }]}>
-              Cari acara, denah, atau pedoman...
-            </Text>
-          </TouchableOpacity>
         </LinearGradient>
 
         <FlatList
           data={scenarios}
           renderItem={renderItem}
           keyExtractor={(item) => "home-scen-" + item.id.toString()}
-          contentContainerStyle={tw`px-5`}
+          contentContainerStyle={tw`px-5 pb-4`} 
           ListHeaderComponent={renderHeader}
           ListFooterComponent={renderFooter}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.2}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              colors={["#3bd9e8"]}
-              tintColor="#3bd9e8"
-            />
-          }
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#3bd9e8"]} tintColor="#3bd9e8" />}
         />
-      </SafeAreaView>
+      </View>
+
       <PinGateModal
         visible={pinModalVisible}
         onClose={() => setPinModalVisible(false)}
@@ -434,19 +348,15 @@ export default function Home() {
           }, 400); 
         }}
       />
-    </>
+    </View>
   );
 }
 
 const getCategoryColor = (type) => {
   switch (type) {
-    case "tempat":
-      return "bg-blue-500";
-    case "acara":
-      return "bg-amber-500";
-    case "hormat":
-      return "bg-teal-500";
-    default:
-      return "bg-slate-500";
+    case "tempat": return "bg-blue-500";
+    case "acara": return "bg-amber-500";
+    case "hormat": return "bg-teal-500";
+    default: return "bg-slate-500";
   }
 };

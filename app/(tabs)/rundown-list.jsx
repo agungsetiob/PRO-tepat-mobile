@@ -143,7 +143,7 @@ export default function RundownList() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={["bottom", "left", "right"]}>
+    <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={["left", "right"]}>
       {/* HEADER GRADIEN DENGAN INPUT SEARCH */}
       <LinearGradient
         colors={["#3bd9e8", "#9359e9"]}

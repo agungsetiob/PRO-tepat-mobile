@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import tw from "twrnc";
 import * as LucideIcons from "lucide-react-native";
@@ -35,9 +35,7 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
         .filter((route) => mainTabs.includes(route.name))
         .map((route) => {
           const { options } = descriptors[route.key];
-          const label = options.title !== undefined ? options.title : route.name;
-
-          const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+          const isFocused = state.index === state.routes.indexOf(route);
 
           let iconName = "folder";
           if (route.name === "index") iconName = "home";
@@ -51,7 +49,6 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
               target: route.key,
               canPreventDefault: true,
             });
-
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name);
             }
@@ -63,18 +60,16 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
               onPress={onPress}
               style={tw`items-center flex-1`}
             >
-              <View 
+              <View
                 style={[
-                  tw`w-14 h-8 items-center justify-center mb-1`, 
-                  { 
-                    borderRadius: 20, 
-                    backgroundColor: isFocused ? 'rgba(20, 184, 166, 0.2)' : 'transparent' 
+                  styles.iconWrapper,
+                  {
+                    backgroundColor: isFocused ? 'rgba(20, 184, 166, 0.2)' : 'transparent',
                   }
                 ]}
               >
                 <DynamicIcon name={iconName} color={isFocused ? "#3bd9e8" : "#64748b"} size={20} />
               </View>
-              
               <Text style={[
                 tw`text-[10px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
                 { fontFamily: 'Montserrat-Bold' }
@@ -83,7 +78,19 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
               </Text>
             </TouchableOpacity>
           );
-      })}
+        })}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrapper: {
+    width: 56,
+    height: 32,
+    borderRadius: 999,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+});

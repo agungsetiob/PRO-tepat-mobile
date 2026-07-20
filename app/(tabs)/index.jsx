@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { useFonts, Montserrat_400Regular, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 import {
   Text,
@@ -11,16 +11,18 @@ import {
   Animated,
   Dimensions,
   RefreshControl,
+  BackHandler,
+  ToastAndroid,
+  Platform
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect, Tabs } from "expo-router";
 import tw from "twrnc";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LucideIcons from "lucide-react-native";
 import api, { STORAGE_BASE_URL } from "../../api/api";
 import PinGateModal from "../../components/PinGateModal";
 import { PinSession, AppSession } from "../../utils/session";
-import { Tabs } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -36,10 +38,50 @@ const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
   return <IconComponent color={color} size={size} strokeWidth={2.5} />;
 };
 
+const getCategoryColor = (type) => {
+  switch (type) {
+    case "tempat": return "bg-blue-500";
+    case "acara": return "bg-amber-500";
+    case "hormat": return "bg-teal-500";
+    default: return "bg-slate-500";
+  }
+};
+
+// ==========================================
+// KOMPONEN ITEM (Dioptimasi dengan React.memo)
+// ==========================================
+const ScenarioItem = memo(({ item, onPress }) => (
+  <TouchableOpacity
+    onPress={() => onPress(item.slug)}
+    style={tw`bg-slate-800/80 p-3 rounded-2xl border border-slate-700 shadow-sm flex-row items-center mb-2.5`}
+  >
+    <Image
+      source={
+        item.thumbnail
+          ? { uri: `${STORAGE_BASE_URL}${item.thumbnail}` }
+          : require("../../assets/icon-protap.png")
+      }
+      style={tw`w-12 h-12 rounded-xl bg-slate-700 mr-3`}
+    />
+    <View style={tw`flex-1`}>
+      <Text style={[tw`text-xs text-white`, { fontFamily: 'Montserrat-Bold' }]} numberOfLines={1}>
+        {item.title}
+      </Text>
+      <Text style={[tw`text-[10px] text-slate-400 mt-0.5 uppercase`, { fontFamily: 'Montserrat-Bold' }]}>
+        {item.category?.name || "Pedoman"} • {item.layout_type || 'Resmi'}
+      </Text>
+    </View>
+    <Text style={tw`text-slate-500 font-bold px-1`}>❯</Text>
+  </TouchableOpacity>
+));
+
 export default function Home() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  // ==========================================
+  // DEKLARASI HOOKS (Harus selalu di atas sebelum Return)
+  // ==========================================
   const [fontsLoaded] = useFonts({
     'Montserrat-Regular': Montserrat_400Regular,
     'Montserrat-Bold': Montserrat_700Bold,
@@ -48,21 +90,10 @@ export default function Home() {
 
   const [pinModalVisible, setPinModalVisible] = useState(false);
   const [targetRoute, setTargetRoute] = useState("");
-
-  const handleProtectedNavigation = (routePath) => {
-    if (PinSession.isVerified) {
-      router.push(routePath);
-    } else {
-      setTargetRoute(routePath);
-      setPinModalVisible(true);
-    }
-  };
-
   const [categories, setCategories] = useState([]);
   const [scenarios, setScenarios] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [hasMore, setHasMore] = useState(false);
-
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showSplash, setShowSplash] = useState(!AppSession.hasShownSplash);
@@ -70,30 +101,53 @@ export default function Home() {
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const exitAppRef = useRef(false);
 
+  // 1. Hook Double Tap to Exit
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (exitAppRef.current) {
+          BackHandler.exitApp();
+          return true; 
+        }
+        exitAppRef.current = true;
+        if (Platform.OS === 'android') {
+          ToastAndroid.show('Tekan kembali sekali lagi untuk keluar', ToastAndroid.SHORT);
+        }
+        setTimeout(() => { exitAppRef.current = false; }, 2000);
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => backHandler.remove();
+    }, [])
+  );
+
+  // 2. Hook Animasi Splash Screen
   useEffect(() => {
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       Animated.spring(scaleAnim, { toValue: 1, friction: 4, useNativeDriver: true }),
     ]).start();
-
     initApp();
   }, []);
 
+  // ==========================================
+  // FUNGSI-FUNGSI LOGIKA (API & Aksi)
+  // ==========================================
   const initApp = async () => {
     try {
       const [catRes, scenRes] = await Promise.all([
         api.get(`/dashboard`),
         api.get(`/scenarios`),
       ]);
-
       if (catRes.data.success) setCategories(catRes.data.data);
       if (scenRes.data.success) {
         setScenarios(scenRes.data.data || []);
         setNextCursor(scenRes.data.next_cursor);
         setHasMore(scenRes.data.has_more);
       }
-
       setTimeout(() => {
         setShowSplash(false);
         setIsLoading(false);
@@ -106,14 +160,13 @@ export default function Home() {
     }
   };
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       const [catRes, scenRes] = await Promise.all([
         api.get(`/dashboard`),
         api.get(`/scenarios`),
       ]);
-
       if (catRes.data.success) setCategories(catRes.data.data);
       if (scenRes.data.success) {
         setScenarios(scenRes.data.data || []);
@@ -129,11 +182,9 @@ export default function Home() {
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore || !nextCursor) return;
-
     setIsLoadingMore(true);
     try {
       const response = await api.get(`/scenarios?cursor=${nextCursor}`);
-
       if (response.data.success) {
         const newData = response.data.data || [];
         setScenarios((prev) => [...prev, ...newData]);
@@ -147,6 +198,27 @@ export default function Home() {
     }
   };
 
+  const handleProtectedNavigation = useCallback((routePath) => {
+    if (PinSession.isVerified) {
+      router.push(routePath);
+    } else {
+      setTargetRoute(routePath);
+      setPinModalVisible(true);
+    }
+  }, [router]);
+
+  // Bungkus fungsi klik dengan useCallback agar props-nya tidak berubah-ubah
+  const handlePressScenario = useCallback((slug) => {
+    router.push(`/scenarios/${slug}`);
+  }, [router]);
+
+  const renderItem = useCallback(({ item }) => (
+    <ScenarioItem item={item} onPress={handlePressScenario} />
+  ), [handlePressScenario]);
+
+  // ==========================================
+  // BAGIAN UI RENDERER
+  // ==========================================
   if (!fontsLoaded) {
     return (
       <View style={[tw`flex-1 justify-center items-center`, { backgroundColor: "#0d1731" }]}>
@@ -230,7 +302,7 @@ export default function Home() {
           </TouchableOpacity>
         ))}
         
-        {/* Manual Book Dikembalikan ke Sini */}
+        {/* Manual Book */}
         <TouchableOpacity
           key="manuals"
           onPress={() => router.push(`/manuals`)}
@@ -249,31 +321,6 @@ export default function Home() {
         ⚡ Skenario Protokol Terkini
       </Text>
     </View>
-  );
-
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      onPress={() => router.push(`/scenarios/${item.slug}`)}
-      style={tw`bg-slate-800/80 p-3 rounded-2xl border border-slate-700 shadow-sm flex-row items-center mb-2.5`}
-    >
-      <Image
-        source={
-          item.thumbnail
-            ? { uri: `${STORAGE_BASE_URL}${item.thumbnail}` }
-            : require("../../assets/icon-protap.png")
-        }
-        style={tw`w-12 h-12 rounded-xl bg-slate-700 mr-3`}
-      />
-      <View style={tw`flex-1`}>
-        <Text style={[tw`text-xs text-white`, { fontFamily: 'Montserrat-Bold' }]} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={[tw`text-[10px] text-slate-400 mt-0.5 uppercase`, { fontFamily: 'Montserrat-Bold' }]}>
-          {item.category?.name || "Pedoman"} • {item.layout_type || 'Resmi'}
-        </Text>
-      </View>
-      <Text style={tw`text-slate-500 font-bold px-1`}>❯</Text>
-    </TouchableOpacity>
   );
 
   if (showSplash) {
@@ -335,6 +382,10 @@ export default function Home() {
           onEndReachedThreshold={0.2}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#3bd9e8"]} tintColor="#3bd9e8" />}
+          initialNumToRender={6}
+          maxToRenderPerBatch={4}
+          windowSize={3}
+          removeClippedSubviews={Platform.OS === 'android'}
         />
       </View>
 
@@ -351,12 +402,3 @@ export default function Home() {
     </View>
   );
 }
-
-const getCategoryColor = (type) => {
-  switch (type) {
-    case "tempat": return "bg-blue-500";
-    case "acara": return "bg-amber-500";
-    case "hormat": return "bg-teal-500";
-    default: return "bg-slate-500";
-  }
-};

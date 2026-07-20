@@ -8,13 +8,14 @@ import {
   StatusBar,
   ActivityIndicator,
   Image,
+  BackHandler
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import tw from "twrnc";
-import { Search, X } from "lucide-react-native";
+import { Search, X, ArrowLeft } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import api, { STORAGE_BASE_URL } from "./api/api";
+import api, { STORAGE_BASE_URL } from "../../api/api";
 
 export default function GlobalSearch() {
   const router = useRouter();
@@ -39,6 +40,24 @@ export default function GlobalSearch() {
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
+  useEffect(() => {
+    const onBackPress = () => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace("/");
+      }
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   const fetchSearchData = async (
     searchQuery,
     pageNum = 1,
@@ -51,8 +70,12 @@ export default function GlobalSearch() {
     }
 
     try {
-      const url = `/search?q=${encodeURIComponent(searchQuery)}&page=${pageNum}`;
-      const response = await api.get(url);
+      const response = await api.get('/search', {
+        params: {
+          q: searchQuery,
+          page: pageNum
+        }
+      });
 
       if (response.data.success) {
         const newData = response.data.data || [];
@@ -98,7 +121,7 @@ export default function GlobalSearch() {
           source={
             item.thumbnail
               ? { uri: `${STORAGE_BASE_URL}${item.thumbnail}` }
-              : require("../assets/icon-protap.png")
+              : require("../../assets/icon-protap.png")
           }
           style={tw`w-12 h-12 rounded-xl bg-slate-700 mr-3`}
         />
@@ -140,7 +163,7 @@ export default function GlobalSearch() {
       >
         <View style={tw`flex-row items-center`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
 
           <View

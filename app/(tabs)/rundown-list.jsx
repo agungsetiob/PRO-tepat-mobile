@@ -12,10 +12,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import api from "./api/api";
+import api from "../../api/api";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
-import { Search } from "lucide-react-native";
+import { Search, X, ArrowLeft } from "lucide-react-native";
 
 export default function RundownList() {
   const router = useRouter();
@@ -153,7 +153,7 @@ export default function RundownList() {
       >
         <View style={tw`flex-row items-center mb-4`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
           <Text style={tw`text-white text-lg font-black uppercase tracking-wide`}>
             Riwayat Rundown
@@ -169,7 +169,7 @@ export default function RundownList() {
             style={tw`flex-1 text-sm text-white py-2 ml-2`}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchQuery(''); fetchHonorifics(); }}>
+            <TouchableOpacity onPress={() => { setSearchQuery(''); fetchRundowns(); }}>
               <X size={18} color="#ffffff" />
             </TouchableOpacity>
           )}

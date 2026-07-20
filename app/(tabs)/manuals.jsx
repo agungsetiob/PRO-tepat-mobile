@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import api, { STORAGE_BASE_URL } from "./api/api";
+import api, { STORAGE_BASE_URL } from "../../api/api";
 
 const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
   const pascalCaseName = name
@@ -143,7 +143,7 @@ export default function Manuals() {
       >
         <View style={tw`flex-row items-center mb-4`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+            <DynamicIcon name="arrow-left" size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
           <View>
             <Text

@@ -10,10 +10,10 @@ import {
   Alert
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import api, { STORAGE_BASE_URL } from "./../api/api";
+import api, { STORAGE_BASE_URL } from "../../../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
-import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote, Download, Loader } from "lucide-react-native";
+import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote, Download, Loader, ArrowLeft } from "lucide-react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -147,7 +147,7 @@ export default function ScenarioDetail() {
         style={tw`p-5 pt-12 flex-row items-center`}
       >
         <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`}>
-          <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+          <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
         </TouchableOpacity>
         <View style={tw`flex-1`}>
           <Text style={tw`text-teal-100 text-[10px] font-bold tracking-widest uppercase`}>

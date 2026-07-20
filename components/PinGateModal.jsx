@@ -3,7 +3,7 @@ import { Modal, Text, View, TextInput, TouchableOpacity, ActivityIndicator } fro
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../api/api";
 import tw from "twrnc";
-import { PinSession } from "../../utils/session";
+import { PinSession } from "../utils/session";
 
 export default function PinGateModal({ visible, onAuthSuccess, onClose }) {
   const [pin, setPin] = useState("");

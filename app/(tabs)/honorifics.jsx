@@ -10,10 +10,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import api from "./api/api";
+import api from "../../api/api";
 import tw from 'twrnc';
 import Constants from 'expo-constants';
-import { Search, UserCircle2, Megaphone, Mic, Star, X } from "lucide-react-native";
+import { Search, UserCircle2, Megaphone, Mic, Star, X, ArrowLeft } from "lucide-react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Honorifics() {
@@ -59,7 +59,7 @@ export default function Honorifics() {
   };
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={['left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#3bd9e8" translucent={false} />
 
       {/* HEADER GRADIENT */}
@@ -71,7 +71,7 @@ export default function Honorifics() {
       >
         <View style={tw`flex-row items-center mb-4`}>
           <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
-            <Text style={tw`text-white text-xl font-bold`}>❮</Text>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
           <View>
             <Text style={tw`text-white/80 text-[10px] font-bold tracking-widest uppercase`}>

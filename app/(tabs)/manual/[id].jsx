@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import api from "./../api/api";
+import api from "../../../api/api";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
 import { File, Paths } from "expo-file-system";
@@ -17,7 +17,7 @@ import * as Sharing from "expo-sharing";
 import {
   Download,
   FileText,
-  ChevronLeft,
+  ArrowLeft,
   Calendar,
   User,
   HardDrive,
@@ -149,9 +149,9 @@ export default function ManualDetail() {
         end={{ x: 1, y: 0 }}
         style={tw`p-5 pt-12 flex-row items-center rounded-b-3xl`}
       >
-        <TouchableOpacity onPress={() => router.back()} style={tw`mr-4`}>
-          <ChevronLeft color="#fff" size={28} />
-        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()} style={tw`mr-3`}>
+            <ArrowLeft size={24} color="#ffffff" strokeWidth={2.5} />
+          </TouchableOpacity>
         <View style={tw`flex-1`}>
           <Text
             style={tw`text-teal-100 text-[10px] font-bold tracking-widest uppercase`}

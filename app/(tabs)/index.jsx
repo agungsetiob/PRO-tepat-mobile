@@ -113,7 +113,7 @@ export default function Home() {
         }
         exitAppRef.current = true;
         if (Platform.OS === 'android') {
-          ToastAndroid.show('Tekan kembali sekali lagi untuk keluar', ToastAndroid.SHORT);
+          ToastAndroid.show('Tekan sekali lagi untuk keluar', ToastAndroid.SHORT);
         }
         setTimeout(() => { exitAppRef.current = false; }, 2000);
         return true;
@@ -207,7 +207,6 @@ export default function Home() {
     }
   }, [router]);
 
-  // Bungkus fungsi klik dengan useCallback agar props-nya tidak berubah-ubah
   const handlePressScenario = useCallback((slug) => {
     router.push(`/scenarios/${slug}`);
   }, [router]);

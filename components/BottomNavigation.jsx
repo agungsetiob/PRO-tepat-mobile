@@ -70,10 +70,14 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
               >
                 <DynamicIcon name={iconName} color={isFocused ? "#3bd9e8" : "#64748b"} size={20} />
               </View>
-              <Text style={[
-                tw`text-[10px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
-                { fontFamily: 'Montserrat-Bold' }
-              ]}>
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="clip"
+                style={[
+                  tw`text-[10px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
+                  { fontFamily: 'Montserrat-Bold' }
+                ]}
+              >
                 {options.tabBarLabel ?? options.title ?? route.name}
               </Text>
             </TouchableOpacity>

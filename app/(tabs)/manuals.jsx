@@ -12,7 +12,8 @@ import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { LinearGradient } from "expo-linear-gradient";
 import * as LucideIcons from "lucide-react-native";
-import api, { STORAGE_BASE_URL } from "../../api/api";
+import api from "../../api/api";
+import { STORAGE_BASE_URL } from '@env';
 
 const DynamicIcon = ({ name, color = "#ffffff", size = 22 }) => {
   const pascalCaseName = name

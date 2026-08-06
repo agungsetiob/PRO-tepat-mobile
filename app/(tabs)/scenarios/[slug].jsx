@@ -10,7 +10,8 @@ import {
   Alert
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import api, { STORAGE_BASE_URL } from "../../../api/api";
+import api from "../../../api/api";
+import { STORAGE_BASE_URL } from '@env';
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { UserCircle2, Megaphone, Mic, Star, Tag, StickyNote, Download, Loader, ArrowLeft } from "lucide-react-native";

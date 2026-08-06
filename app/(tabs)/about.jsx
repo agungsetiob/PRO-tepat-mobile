@@ -22,15 +22,13 @@ export default function About() {
   const router = useRouter();
   const { width } = useWindowDimensions();
 
-  // State untuk Modal Privacy Policy
   const [modalVisible, setModalVisible] = useState(false);
   const [policyData, setPolicyData] = useState(null);
   const [isLoadingPolicy, setIsLoadingPolicy] = useState(false);
 
-  // Fungsi Fetch Kebijakan Privasi dari Server Laravel
   const fetchPrivacyPolicy = async () => {
     setModalVisible(true);
-    if (policyData) return; // Jika sudah pernah di-fetch, tidak perlu request ulang
+    if (policyData) return;
 
     setIsLoadingPolicy(true);
     try {
@@ -45,7 +43,6 @@ export default function About() {
     }
   };
 
-  // Styling khusus tag HTML dari WYSIWYG agar menyatu dengan theme Dark Mode
   const tagsStyles = {
     body: {
       color: '#cbd5e1',
@@ -66,7 +63,6 @@ export default function About() {
     <SafeAreaView style={tw`flex-1 bg-[#0d1731]`} edges={['left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor="#3bd9e8" translucent={false} />
 
-      {/* HEADER GRADIENT */}
       <LinearGradient
         colors={['#3bd9e8', '#9359e9']}
         start={{ x: 0, y: 0 }}
@@ -92,9 +88,12 @@ export default function About() {
       <ScrollView style={tw`flex-1`} contentContainerStyle={tw`px-5 pt-6 pb-12`}>
         <View style={tw`items-center mb-6`}>
           <Image
-            source={require('../../assets/beraksi-logo.png')}
+            source={require('../../assets/protokoler2.png')}
             style={{ width: '100%', height: 200, resizeMode: 'contain' }}
           />
+        </View>
+        <View style={tw`-mt-28 items-center`}>
+          <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>Panduan Resmi Operasional Tata Acara Protokol</Text>          
         </View>
 
         {/* TENTANG APLIKASI */}
@@ -130,7 +129,7 @@ export default function About() {
 
         <View style={tw`bg-slate-800/80 p-4 rounded-2xl border border-slate-700 shadow-md mb-4 flex-row justify-between`}>
           <Text style={[tw`text-slate-400 text-sm`, { fontFamily: 'Montserrat-Regular' }]}>Versi</Text>
-          <Text style={[tw`text-white text-sm font-bold`, { fontFamily: 'Montserrat-Bold' }]}>1.1.0</Text>
+          <Text style={[tw`text-white text-sm font-bold`, { fontFamily: 'Montserrat-Bold' }]}>1.2.0</Text>
         </View>
 
         <View style={tw`items-center mt-4 mb-8`}>

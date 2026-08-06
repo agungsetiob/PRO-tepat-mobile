@@ -20,7 +20,8 @@ import { useRouter, useFocusEffect, Tabs } from "expo-router";
 import tw from "twrnc";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as LucideIcons from "lucide-react-native";
-import api, { STORAGE_BASE_URL } from "../../api/api";
+import api from "../../api/api";
+import { STORAGE_BASE_URL } from '@env';
 import PinGateModal from "../../components/PinGateModal";
 import { PinSession, AppSession } from "../../utils/session";
 
@@ -237,15 +238,15 @@ export default function Home() {
     }
     return (
       <View style={tw`mt-6 mb-8 items-center`}>
-        <Text style={[tw`text-[10px] text-slate-500`, { fontFamily: 'Montserrat-Regular' }]}>PROTAP v1.1.0</Text>
+        <Text style={[tw`text-[10px] text-slate-500`, { fontFamily: 'Montserrat-Regular' }]}>PROTAP v1.2.0</Text>
       </View>
     );
   };
 
   const renderHeader = () => (
-    <View style={tw`pt-6`}>
+    <View style={tw`pt-6 bg-[#0d1731]`}>
       <TouchableOpacity
-        onPress={() => handleProtectedNavigation("/generator")}
+        onPress={() => router.push("/generator")}
         style={tw`bg-slate-800/90 p-4 rounded-2xl shadow-sm mb-3 flex-row items-center justify-between`}
       >
         <View style={tw`flex-row items-center`}>
@@ -333,10 +334,10 @@ export default function Home() {
           <View style={tw`items-center justify-center`}>
             <Image source={require("../../assets/icon-protap.png")} style={{ width: width * 0.3, height: 115 }} resizeMode="contain" />
             <Text style={[tw`text-white text-4xl tracking-wide`, { fontFamily: 'Montserrat-Black' }]}>PROTAP</Text>
-            <Image source={require("../../assets/protokoler.png")} style={{ width: width * 1.85, height: 410, marginTop: -75 }} resizeMode="contain" />
+            {/* <Image source={require("../../assets/protokoler.png")} style={{ width: width * 1.85, height: 410, marginTop: -75 }} resizeMode="contain" />
             <View style={tw`-mt-28 items-center`}>
               <Text style={[tw`text-teal-400 text-lg uppercase text-center px-2`, { fontFamily: 'Montserrat-Bold' }]}>Panduan Resmi Operasional Tata Acara Protokol</Text>
-            </View>
+            </View> */}
           </View>
         </Animated.View>
         <View style={tw`absolute bottom-12 items-center`}>

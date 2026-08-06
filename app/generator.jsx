@@ -19,7 +19,6 @@ import api from "../api/api";
 import tw from "twrnc";
 import Constants from "expo-constants";
 import { LinearGradient } from "expo-linear-gradient";
-import PinGateModal from "../components/PinGateModal";
 
 export default function RundownGenerator() {
   const router = useRouter();
@@ -53,8 +52,7 @@ export default function RundownGenerator() {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
 
-  const [pinModalVisible, setPinModalVisible] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null);
+  // State pinModalVisible dan pendingAction dihapus
 
   useEffect(() => {
     fetchInitialMasterData();
@@ -161,8 +159,8 @@ export default function RundownGenerator() {
   };
 
   const handleSubmit = async () => {
-    if (!eventName || !location || rundownRows.length === 0 || selectedInvitations.length === 0) {
-      triggerAlert("Peringatan", "Mohon lengkapi data acara, isi minimal 1 baris susunan, dan 1 orang undangan");
+    if (!eventName || !location || rundownRows.length < 4 || selectedInvitations.length === 0) {
+      triggerAlert("Peringatan", "Mohon lengkapi data acara, isi minimal 4 baris susunan, dan 1 orang undangan");
       return;
     }
     executeSubmit();
@@ -261,15 +259,31 @@ export default function RundownGenerator() {
         router.push("/");
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        setIsSubmitting(false);
-        setPendingAction('submit');
-        setPinModalVisible(true);
-      } else {
-        console.error("Gagal generate rundown & PDF:", error);
-        triggerAlert("Gagal", "Terjadi kendala teknis saat memproses file cetakan.");
-        setIsSubmitting(false);
+      setIsSubmitting(false);
+      console.error("Gagal generate rundown & PDF:", error);
+      
+      let alertTitle = "Gagal";
+      let errorMessage = "Terjadi kendala teknis saat memproses data.";
+
+      if (error.response && error.response.data) {
+        if (error.response.data.errors) {
+          alertTitle = "Validasi Gagal";
+          
+          const errorsObj = error.response.data.errors;
+          const errorList = Object.keys(errorsObj).map((key) => {
+            return `• ${errorsObj[key][0]}`;
+          });
+          
+          errorMessage = errorList.join('\n');
+        } 
+        else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        }
       }
+      
+      triggerAlert(alertTitle, errorMessage);
     }
   };
 
@@ -311,7 +325,6 @@ export default function RundownGenerator() {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View>
-              {/* ... (Semua UI Input Header dan Undangan persis sama tidak ada yang diubah) ... */}
               <Text style={tw`text-slate-400 text-xs font-bold mb-1.5 uppercase`}>Nama Acara</Text>
               <TextInput
                 value={eventName}
@@ -513,7 +526,6 @@ export default function RundownGenerator() {
         </TouchableOpacity>
       </View>
 
-      {/* ... (Modal Pencarian Agenda & Pejabat tetap sama persis) ... */}
       <Modal visible={searchModalVisible} animationType="slide" transparent={true} onRequestClose={() => setSearchModalVisible(false)}>
         <View style={tw`flex-1 bg-black/70 justify-end`}>
           <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
@@ -601,21 +613,6 @@ export default function RundownGenerator() {
           </View>
         </View>
       </Modal>
-
-      <PinGateModal
-        visible={pinModalVisible}
-        onClose={() => {
-          setPinModalVisible(false);
-          setPendingAction(null);
-        }}
-        onAuthSuccess={() => {
-          setPinModalVisible(false);
-          if (pendingAction === 'submit') {
-            executeSubmit();
-            setPendingAction(null);
-          }
-        }}
-      />
 
     </SafeAreaView>
   );

@@ -40,7 +40,7 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
           let iconName = "folder";
           if (route.name === "index") iconName = "home";
           else if (route.name === "search") iconName = "search";
-          else if (route.name === "honorifics") iconName = "users";
+          else if (route.name === "honorifics") iconName = "award";
           else if (route.name === "about") iconName = "info";
 
           const onPress = () => {
@@ -74,7 +74,7 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
                 numberOfLines={1}
                 ellipsizeMode="clip"
                 style={[
-                  tw`text-[10px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
+                  tw`text-[9px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
                   { fontFamily: 'Montserrat-Bold' }
                 ]}
               >
@@ -95,6 +95,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    marginBottom: 3,
   },
 });

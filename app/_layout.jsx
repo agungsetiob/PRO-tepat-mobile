@@ -5,15 +5,21 @@ export default function RootLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        // Mengubah warna background dasar stack menjadi warna gelap aplikasi
-        contentStyle: { backgroundColor: '#0d1731' }, 
-        
-        // Animasi transisi antar halaman (gunakan 'fade' atau 'slide_from_right')
+        contentStyle: { backgroundColor: '#0d1731' },
+        cardStyle: { backgroundColor: '#0d1731' },
         animation: 'slide_from_right', 
       }}
     >
-      {/* Mengarahkan root route ke sistem Tabs */}
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="generator"
+        options={{
+          presentation: 'card',
+          animation: 'slide_from_right',
+          cardStyle: { backgroundColor: '#0d1731' },
+          gestureEnabled: true,
+        }}
+      />
     </Stack>
   );
 }

@@ -18,8 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Constants from "expo-constants";
 import { ArrowLeft } from "lucide-react-native";
 import PinGateModal from "../../../components/PinGateModal";
-
-const { STORAGE_BASE_URL } = Constants.expoConfig.extra;
+import { STORAGE_BASE_URL } from '@env';
 
 export default function RundownDetail() {
   const { id } = useLocalSearchParams();

@@ -15,7 +15,8 @@ import { useRouter } from "expo-router";
 import tw from "twrnc";
 import { Search, X, ArrowLeft } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import api, { STORAGE_BASE_URL } from "../../api/api";
+import api from "../../api/api";
+import { STORAGE_BASE_URL } from '@env';
 
 export default function GlobalSearch() {
   const router = useRouter();

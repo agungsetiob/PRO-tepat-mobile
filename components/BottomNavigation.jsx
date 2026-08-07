@@ -74,7 +74,7 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
                 numberOfLines={1}
                 ellipsizeMode="clip"
                 style={[
-                  tw`text-[9px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
+                  tw`text-xs ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
                   { fontFamily: 'Montserrat-Bold' }
                 ]}
               >

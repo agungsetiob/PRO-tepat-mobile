@@ -72,10 +72,9 @@ export default function BottomNavigation({ state, descriptors, navigation }) {
               </View>
               <Text
                 numberOfLines={1}
-                ellipsizeMode="clip"
                 style={[
-                  tw`text-[9px] ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
-                  { fontFamily: 'Montserrat-Bold' }
+                  tw`text-xs text-center ${isFocused ? "text-[#3bd9e8]" : "text-slate-500"}`,
+                  { fontFamily: 'Montserrat-Bold', alignSelf: 'stretch' }
                 ]}
               >
                 {options.tabBarLabel ?? options.title ?? route.name}

@@ -32,10 +32,10 @@ export default function RundownGenerator() {
 
   const [masterAgendas, setMasterAgendas] = useState([]);
   const [rundownRows, setRundownRows] = useState([]);
-  
+
   const [masterHonorifics, setMasterHonorifics] = useState([]);
   const [selectedInvitations, setSelectedInvitations] = useState([]);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -167,8 +167,12 @@ export default function RundownGenerator() {
   };
 
   const executeSubmit = async () => {
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
+
     try {
+      // 1. Simpan rundown ke server
       const payload = {
         event_name: eventName,
         date: formatDateToString(date),
@@ -179,110 +183,143 @@ export default function RundownGenerator() {
         invitations: selectedInvitations,
       };
 
-      const response = await api.post('/rundowns', payload);
+      const response = await api.post("/rundowns", payload);
 
-      if (response.data.success) {
-        const savedRundown = response.data.data;
-
-        const tableRowsHtml = savedRundown.items
-          .map((item, index) => `
-            <tr>
-              <td style="text-align: center; font-weight: bold; color: #475569;">${index + 1}</td>
-              <td style="font-weight: bold; color: #0d9488; text-align: center;">${item.start_time} - ${item.end_time}</td>
-              <td>${item.master_agenda ? item.master_agenda.name : "-"}</td>
-            </tr>
-          `).join("");
-
-        const htmlContent = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="utf-8">
-            <style>
-              @page { size: A4; margin: 20mm 15mm; }
-              body { font-family: 'Arial', sans-serif; color: #1e293b; margin: 0; padding: 0; font-size: 10pt; line-height: 1.5; }
-              .brand-container { text-align: center; margin-bottom: 5px; }
-              .gov-logo { width: 70px; height: auto; display: inline-block; }
-              .header-text-group { text-align: center; margin-bottom: 25px; }
-              .doc-title { font-size: 13pt; font-weight: 800; text-transform: uppercase; color: #0f172a; margin: 4px 0; letter-spacing: 0.5px; }
-              .gov-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; color: #475569; margin: 2px 0; }
-              .meta-info { width: 100%; margin-bottom: 20px; font-size: 10pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 15px; }
-              .meta-info td { padding: 4px 0; vertical-align: top; }
-              .meta-label { width: 18%; font-weight: bold; color: #334155; }
-              .meta-spacer { width: 2%; color: #334155; }
-              .meta-value { width: 80%; color: #0f172a; }
-              table.content-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
-              table.content-table th { background-color: #7497e9; color: white; font-weight: bold; text-transform: uppercase; font-size: 8.5pt; padding: 10px; border: 1px solid #475569; }
-              table.content-table td { padding: 10px; border: 1px solid #475569; vertical-align: middle; font-size: 9.5pt; }
-              table.content-table tr:nth-child(even) { background-color: #f8fafc; }
-            </style>
-          </head>
-          <body>
-            <div class="brand-container">
-              <img class="gov-logo" src="https://protap.tanahbumbukab.go.id/logo-tanbu.png" alt="Logo Kabupaten" />
-            </div>
-            <div class="header-text-group">
-              <div class="doc-title">RUNDOWN ACARA</div>
-              <div class="doc-title">${savedRundown.event_name}</div>
-              <div class="gov-title">KABUPATEN TANAH BUMBU</div>
-            </div>
-            <table class="meta-info">
-              <tr><td class="meta-label">Hari, Tgl</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.date}</td></tr>
-              <tr><td class="meta-label">Waktu</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.time_info}</td></tr>
-              <tr><td class="meta-label">Tempat</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.location}</td></tr>
-              <tr><td class="meta-label">Pelaksana / PJ</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.pic || '-'}</td></tr>
-            </table>
-            <table class="content-table">
-              <thead>
-                <tr>
-                  <th style="width: 8%;">No.</th>
-                  <th style="width: 22%;">Waktu</th>
-                  <th style="width: 70%;">Uraian Kegiatan</th>
-                </tr>
-              </thead>
-              <tbody>${tableRowsHtml}</tbody>
-            </table>
-          </body>
-          </html>
-        `;
-
-        const { uri } = await Print.printToFileAsync({ html: htmlContent });
-        await Sharing.shareAsync(uri, {
-          MIMEType: "application/pdf",
-          dialogTitle: "Cetak Rundown Acara",
-        });
-        
-        setRundownRows([]);
-        setSelectedInvitations([]);
-        setIsSubmitting(false);
-
-        router.push("/");
+      if (!response.data?.success) {
+        throw new Error(response.data?.message || "Gagal menyimpan rundown.");
       }
+
+      const savedRundown = response.data.data;
+
+      // 2. Generate HTML tabel rundown
+      const tableRowsHtml = savedRundown.items
+        .map(
+          (item, index) => `
+          <tr>
+            <td style="text-align: center; font-weight: bold; color: #475569;">
+              ${index + 1}
+            </td>
+            <td style="font-weight: bold; color: #0d9488; text-align: center;">
+              ${item.start_time} - ${item.end_time}
+            </td>
+            <td>
+              ${item.master_agenda ? item.master_agenda.name : "-"}
+            </td>
+          </tr>
+        `
+        )
+        .join("");
+
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          @page { size: A4; margin: 20mm 15mm; }
+          body { font-family: 'Arial', sans-serif; color: #1e293b; margin: 0; padding: 0; font-size: 10pt; line-height: 1.5; }
+          .brand-container { text-align: center; margin-bottom: 5px; }
+          .gov-logo { width: 70px; height: auto; display: inline-block; }
+          .header-text-group { text-align: center; margin-bottom: 25px; }
+          .doc-title { font-size: 13pt; font-weight: 800; text-transform: uppercase; color: #0f172a; margin: 4px 0; letter-spacing: 0.5px; }
+          .gov-title { font-size: 11pt; font-weight: bold; text-transform: uppercase; color: #475569; margin: 2px 0; }
+          .meta-info { width: 100%; margin-bottom: 20px; font-size: 10pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 15px; }
+          .meta-info td { padding: 4px 0; vertical-align: top; }
+          .meta-label { width: 18%; font-weight: bold; color: #334155; }
+          .meta-spacer { width: 2%; color: #334155; }
+          .meta-value { width: 80%; color: #0f172a; }
+          table.content-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+          table.content-table th { background-color: #7497e9; color: white; font-weight: bold; text-transform: uppercase; font-size: 8.5pt; padding: 10px; border: 1px solid #475569; }
+          table.content-table td { padding: 10px; border: 1px solid #475569; vertical-align: middle; font-size: 9.5pt; }
+          table.content-table tr:nth-child(even) { background-color: #f8fafc; }
+        </style>
+      </head>
+      <body>
+        <div class="brand-container">
+          <img class="gov-logo" src="https://protap.tanahbumbukab.go.id/logo-tanbu.png" alt="Logo Kabupaten" />
+        </div>
+        <div class="header-text-group">
+          <div class="doc-title">RUNDOWN ACARA</div>
+          <div class="doc-title">${savedRundown.event_name}</div>
+          <div class="gov-title">KABUPATEN TANAH BUMBU</div>
+        </div>
+        <table class="meta-info">
+          <tr><td class="meta-label">Hari, Tgl</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.date}</td></tr>
+          <tr><td class="meta-label">Waktu</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.time_info}</td></tr>
+          <tr><td class="meta-label">Tempat</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.location}</td></tr>
+          <tr><td class="meta-label">Pelaksana / PJ</td><td class="meta-spacer">:</td><td class="meta-value">${savedRundown.pic || "-"}</td></tr>
+        </table>
+        <table class="content-table">
+          <thead>
+            <tr>
+              <th style="width: 8%;">No.</th>
+              <th style="width: 22%;">Waktu</th>
+              <th style="width: 70%;">Uraian Kegiatan</th>
+            </tr>
+          </thead>
+          <tbody>${tableRowsHtml}</tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+      // 3. Generate PDF
+      const { uri } = await Print.printToFileAsync({ html: htmlContent });
+
+      if (!uri) {
+        throw new Error("PDF berhasil diproses tetapi file tidak ditemukan.");
+      }
+
+      // 4. Reset state form
+      setRundownRows([]);
+      setSelectedInvitations([]);
+      setIsSubmitting(false);
+
+      // 5. Trigger Share / Download secara background tanpa blocking navigasi
+      const triggerShare = async () => {
+        try {
+          const isAvailable = await Sharing.isAvailableAsync();
+          if (isAvailable) {
+            await Sharing.shareAsync(uri, {
+              mimeType: "application/pdf",
+              dialogTitle: "Cetak Rundown Acara",
+              UTI: "com.adobe.pdf", // Membantu deteksi MIME type di macOS/iOS
+            });
+          }
+        } catch (shareErr) {
+          console.warn("Share/Download diabaikan atau ditutup:", shareErr);
+        }
+      };
+
+      // Jalankan share tanpa await agar router.replace langsung jalan
+      triggerShare();
+
+      // 6. Langsung kembali ke Home
+      router.replace("/");
+
     } catch (error) {
       setIsSubmitting(false);
       console.error("Gagal generate rundown & PDF:", error);
-      
+
       let alertTitle = "Gagal";
       let errorMessage = "Terjadi kendala teknis saat memproses data.";
 
-      if (error.response && error.response.data) {
+      if (error.response?.data) {
         if (error.response.data.errors) {
           alertTitle = "Validasi Gagal";
-          
           const errorsObj = error.response.data.errors;
-          const errorList = Object.keys(errorsObj).map((key) => {
-            return `• ${errorsObj[key][0]}`;
-          });
-          
-          errorMessage = errorList.join('\n');
-        } 
-        else if (error.response.data.message) {
+          errorMessage = Object.keys(errorsObj)
+            .map((key) => `• ${errorsObj[key][0]}`)
+            .join("\n");
+        } else if (error.response.data.message) {
           errorMessage = error.response.data.message;
         } else if (error.response.data.error) {
           errorMessage = error.response.data.error;
         }
+      } else if (error.message) {
+        errorMessage = error.message;
       }
-      
+
       triggerAlert(alertTitle, errorMessage);
     }
   };
@@ -411,7 +448,7 @@ export default function RundownGenerator() {
                         <Text style={tw`text-slate-400 text-[10px] ml-2`}>▼</Text>
                       </TouchableOpacity>
                     </View>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => handleRemoveInvitationRow(invIndex)}
                       style={tw`bg-red-500/10 border border-red-500/20 p-2.5 rounded-xl self-end`}
                     >
@@ -440,7 +477,7 @@ export default function RundownGenerator() {
               </View>
             </View>
           }
-          
+
           renderItem={({ item, index }) => {
             const selectedAgenda = masterAgendas.find((a) => a.id === item.master_agenda_id);
 
@@ -501,7 +538,7 @@ export default function RundownGenerator() {
               </View>
             );
           }}
-          
+
           ListEmptyComponent={
             <Text style={tw`text-slate-500 text-xs italic text-center py-8`}>
               Belum ada susunan acara. Tekan tombol "+" di atas untuk menambah susunan.
@@ -588,7 +625,7 @@ export default function RundownGenerator() {
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => selectHonorificFromSearch(item.id)} style={tw`p-3.5 border-b border-slate-800 bg-slate-800/20 rounded-lg mb-1.5`}>
                   <Text style={tw`text-white text-xs font-bold`}>{item.jabatan}</Text>
-                    {item.sapaan_resmi && <Text style={tw`text-slate-400 text-[11px] mt-0.5`}>{item.sapaan_resmi}</Text>}
+                  {item.sapaan_resmi && <Text style={tw`text-slate-400 text-[11px] mt-0.5`}>{item.sapaan_resmi}</Text>}
                 </TouchableOpacity>
               )}
               ListEmptyComponent={

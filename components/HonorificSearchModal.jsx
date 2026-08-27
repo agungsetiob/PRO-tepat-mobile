@@ -1,9 +1,57 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, FlatList, Modal } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Modal,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from "react-native";
 import tw from "twrnc";
+
+const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 export default function HonorificSearchModal({ visible, onClose, onSelect, honorifics }) {
   const [searchQuery, setSearchQuery] = useState("");
+  const translateY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      translateY.setValue(0);
+    }
+  }, [visible]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 120 || gestureState.vy > 0.5) {
+          Animated.timing(translateY, {
+            toValue: SCREEN_HEIGHT,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            handleClose();
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            bounciness: 4,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
 
   const filteredHonorifics = (honorifics || []).filter((hp) =>
     (hp.jabatan || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -24,12 +72,28 @@ export default function HonorificSearchModal({ visible, onClose, onSelect, honor
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={handleClose}>
       <View style={tw`flex-1 bg-black/70 justify-end`}>
-        <View style={tw`bg-slate-900 h-[70%] rounded-t-3xl p-5 border-t border-slate-800`}>
-          <View style={tw`flex-row justify-between items-center mb-4`}>
-            <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>Cari Jabatan / Nama Undangan</Text>
-            <TouchableOpacity onPress={handleClose} style={tw`bg-slate-700 p-1 rounded-full px-2`}>
-              <Text style={tw`text-white font-bold`}>X</Text>
-            </TouchableOpacity>
+        <Animated.View
+          style={[
+            tw`bg-slate-900 h-[75%] rounded-t-3xl p-5 border-t border-slate-800`,
+            { transform: [{ translateY }] },
+          ]}
+        >
+          {/* Gesture Drag Bar & Header Container */}
+          <View {...panResponder.panHandlers} style={tw`w-full items-center pt-1 pb-4`}>
+            {/* Garis Handle Swipe */}
+            <View style={tw`w-12 h-1.5 bg-slate-600 rounded-full mb-3`} />
+
+            <View style={tw`flex-row justify-between items-center w-full`}>
+              <Text style={tw`text-white text-sm font-black uppercase tracking-wide`}>
+                Cari Jabatan / Nama Undangan
+              </Text>
+              <TouchableOpacity
+                onPress={handleClose}
+                style={tw`bg-slate-800 border border-slate-700 w-7 h-7 rounded-full items-center justify-center`}
+              >
+                <Text style={tw`text-slate-400 font-bold text-xs`}>✕</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <TextInput
@@ -58,11 +122,11 @@ export default function HonorificSearchModal({ visible, onClose, onSelect, honor
             )}
             ListEmptyComponent={
               <View style={tw`py-10 items-center`}>
-                <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada data jabatan/undangan ditemukan.</Text>
+                <Text style={tw`text-slate-500 text-xs italic`}>Tidak ada data jabatan/undangan tersedia.</Text>
               </View>
             }
           />
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );

@@ -85,9 +85,16 @@ export default function RundownGenerator() {
   };
 
   const handleAddRow = () => {
+    const available = masterAgendas.filter((a) => !selectedAgendaIds.includes(a.id));
+    
+    if (available.length === 0) {
+      triggerAlert("Info", "Semua agenda/acara master sudah dipilih.");
+      return;
+    }
+
     setRundownRows((prev) => [
       ...prev,
-      { master_agenda_id: masterAgendas[0]?.id || "", start_time: "08.00", end_time: "08.10" },
+      { master_agenda_id: available[0].id, start_time: "08.00", end_time: "08.10" },
     ]);
   };
 
@@ -100,7 +107,17 @@ export default function RundownGenerator() {
   };
 
   const handleAddInvitationRow = () => {
-    setSelectedInvitations((prev) => [...prev, { honorific_id: masterHonorifics[0]?.id || "" }]);
+    const available = masterHonorifics.filter((h) => !selectedHonorificIds.includes(h.id));
+    
+    if (available.length === 0) {
+      triggerAlert("Info", "Semua pejabat/undangan master sudah ditambahkan.");
+      return;
+    }
+
+    setSelectedInvitations((prev) => [
+      ...prev,
+      { honorific_id: available[0].id },
+    ]);
   };
 
   const handleRemoveInvitationRow = (index) => {
@@ -151,6 +168,31 @@ export default function RundownGenerator() {
       return;
     }
     executeSubmit();
+  };
+
+  // Kumpulan ID yang sudah dipilih
+  const selectedAgendaIds = rundownRows
+    .map((row) => row.master_agenda_id)
+    .filter(Boolean);
+
+  const selectedHonorificIds = selectedInvitations
+    .map((inv) => inv.honorific_id)
+    .filter(Boolean);
+
+  // Filter master data hanya menyisakan yang belum dipilih
+  // (tetap sertakan ID dari baris aktif agar baris yang sedang diedit tetap valid)
+  const getAvailableAgendas = (currentRowIndex) => {
+    const currentId = rundownRows[currentRowIndex]?.master_agenda_id;
+    return masterAgendas.filter(
+      (a) => !selectedAgendaIds.includes(a.id) || a.id === currentId
+    );
+  };
+
+  const getAvailableHonorifics = (currentRowIndex) => {
+    const currentId = selectedInvitations[currentRowIndex]?.honorific_id;
+    return masterHonorifics.filter(
+      (h) => !selectedHonorificIds.includes(h.id) || h.id === currentId
+    );
   };
 
   const executeSubmit = async () => {
@@ -574,7 +616,7 @@ export default function RundownGenerator() {
           setActiveRowSearchIndex(null);
         }}
         onSelect={selectAgendaFromSearch}
-        agendas={masterAgendas}
+        agendas={getAvailableAgendas(activeRowSearchIndex)}
       />
 
       <HonorificSearchModal
@@ -584,7 +626,7 @@ export default function RundownGenerator() {
           setActiveHonorificSearchIndex(null);
         }}
         onSelect={selectHonorificFromSearch}
-        honorifics={masterHonorifics}
+        honorifics={getAvailableHonorifics(activeHonorificSearchIndex)}
       />
 
       <CustomAlertModal
